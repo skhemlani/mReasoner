@@ -7,54 +7,21 @@
 ; Section 1.3:  Helper fns for high-level fns
 ; Section 1.4:  Low-level model fns
 ; Section 1.5:  Property fns
-; Section 1.6:  Individual fns
-; Section 1.7:  Model fns
-; Section 1.8:  Modelset fns
-; Section 1.9:  Footnote fns
-; Section 1.10: Intension fns
+; Section 1.6:  Quantitative intension and model functions
+; Section 1.7:  Temporal intension and model functions
+; Section 1.8:  Sentential intension and model functions
+; Section 1.9:  Spatial intension and model functions
+; Section 1.10: Causal intension and model functions
 ; Section 1.11: Tracer classes and functions
+; Section 1.12: Command-line arguments
+; Section 1.13: JSON utility functions
+; Section 1.14: mReasoner REPL
+; Section 1.15: Deliver standalone executable for Syllogism Challenge
+; Section 1.16: Deliver standalone executable for CMRAS system (CCL)
 
 ; ---------------------------------------------------------------------------------
 ; Section 1.1: Model manipulation functions
 ; ---------------------------------------------------------------------------------
-
-(defmethod model-size ((model t-model))
-  "Gets the size of a temporal model, i.e., the number of distinct events, punctate
-   or durational, represented in the model."
-  (length (remove-if #'(lambda (x) (or (equal x 'START)
-                                       (equal x 'END)))
-                     (remove-duplicates (flatten (moments model))))))
-
-(defmethod find-referent-in-model (referent (model q-model)) ;ml
-  (helper-find-ref-in-model referent (individuals model)))
-
-(defmethod find-referent-in-model (referent (model t-model))
-  (or (helper-find-ref-in-model (list referent) (moments model))
-      (helper-find-ref-in-model (list referent 'START) (moments model))
-      (helper-find-ref-in-model (list referent 'END) (moments model))))
-
-(defmethod find-referent-in-model (referent (model sp-model))
-  (thing-position referent (things model)))
-
-(defun thing-position (thing things)
-  "Gets position of a specified object (thing) from list representing a vector (depth = 2), matrix (depth = 3),
-   or 3D grid (depth = 4)."
-  (let ((tester  (lambda (x y) (member x (flatten y) :test #'equals))))
-    (case (depth things)
-      (2 (position thing things :test tester))
-      (3 (let* ((list-pos (position thing things :test tester)))
-           (when list-pos (list list-pos (thing-position thing (nth list-pos things))))))
-      (4 (let* ((list-pos (position thing things :test tester)))
-           (when list-pos (append (list list-pos) (thing-position thing (nth list-pos things)))))))))
-
-(defmethod find-referent-in-model ((referent s-intension) (model s-model))
-    (when (is-atom referent)
-      (find-referent-in-model (first-argument referent) model)))
-
-(defmethod find-referent-in-model ((referent symbol) (model s-model))
-  (if (is-atomic-model model)
-      (find-referent-in-modelset (list referent) (list (possibilities model)))
-    (find-referent-in-modelset (list referent) (mapcar #'possibilities (possibilities model)))))
 
 (defun find-referent-in-modelset (referent models) ; pjl
   "Tries to find referent in set of models
@@ -100,59 +67,6 @@
        (remove-model mod (cdr modelset)))
       (t (cons (car modelset) (remove-model mod (cdr modelset))))))
 
-(defmethod find-referent-individuals-in-model (referent (model q-model)) ; ssk + ml
-  "Finds and returns all referent individuals in a model.
-   (find-referent-individuals-in-model '(A) '(((- A) (B)) ((A) (B)) ((A) (B)) (T20)))
-   => (((A) (B)) ((A) (B)))"
-  (let ((ref-indivs nil))
-    (dolist (individual (individuals model))
-      (when (member referent individual :test #'property-equal)
-        (push individual ref-indivs)))
-    ref-indivs))
-
-(defmethod find-subj&obj-in-model (subj obj (model q-model)) ; ssk
-  "Finds and returns all referent individuals in a model.
-   (find-subj&obj-in-model '(A) '(B) '(((- A) (B)) ((A) (- B))  ((A) (B)) ((A) (B)) (T20)))
-   => (((A) (B)) ((A) (B)))"
-  (let ((subj&obj-model nil))
-    (dolist (individual (individuals model))
-      (when (and (member subj individual :test #'property-equal)
-                 (member obj individual :test #'property-equal))
-        (push individual subj&obj-model)))
-    subj&obj-model))
-
-(defmethod find-subj-wo-obj-in-model (subj obj (model q-model)) ; ssk
-  "Finds and returns all referent individuals in a model.
-   (find-subj-wo-obj-in-model '(A) '(B) '(((- A) (B)) ((A) (- B))  ((A) (B)) ((A) (B)) (T20)))
-   => (((A) (B)) ((A) (B)))"
-  (let ((ref-indivs-model (find-referent-individuals-in-model subj model))
-        (subj-wo-obj-model nil))
-    (dolist (individual ref-indivs-model)
-      (when (not (and (member subj individual :test #'property-equal)
-                      (member obj individual :test #'property-equal)))
-        (push individual subj-wo-obj-model)))
-    subj-wo-obj-model))
-
-(defmethod get-referent-cardinality (referent (model q-model)) ; ssk
-   "Calculates cardinality of model with respect to a given referent, e.g.,
-   (get-referent-cardinality '(A) '(((- A) (B)) ((A) (B)) ((A) (B)) (T20)))
-   => 2"
-  (length (find-referent-individuals-in-model referent model)))
-
-(defmethod get-subj&obj-cardinality (subj obj (model q-model)) ; ssk
-   "Calculates cardinality of model subset that includes individuals that are
-    both subj & obj, e.g.,
-   (get-subj&obj-cardinality '(A) '(B) '(((A) (C)) ((A) (B)) ((A) (B)) (T20)))
-   => 2"
-  (length (find-subj&obj-in-model subj obj model)))
-
-(defmethod get-subj-wo-obj-cardinality (subj obj (model q-model)) ; ssk
-   "Calculates cardinality of model subset that includes individuals that are
-    subjs but NOT objs, e.g.,
-   (get-subj-wo-obj-cardinality '(A) '(B) '(((A) (C)) ((A) (B)) ((A) (B)) (T20)))
-   => 1"
-  (length (find-subj-wo-obj-in-model subj obj model)))
-
 (defmethod equals ((a symbol) (b symbol))
   (equal a b))
 
@@ -166,18 +80,23 @@
   (when (equals (type-of a) (type-of b))
     (equals a b)))
 
-(defmethod equals ((entity-1 q-model) (entity-2 q-model)) ;ml
+(defmethod equals ((mod1 q-model) (mod2 q-model))
   "This function returns true or false depending on whether the two input
    models are equivalent. Equivalent in this case means that for all the
-   individuals in mod1 there is an equivalent individual in mod2. . This ensures that the search is exhaustive.
-   (is-equivalent-model '(((A))((B))) '(((A))((B)))) => T
-   (is-equivalent-model '(((A))((B))) '(((A)))) => NIL"
+   individuals in mod1 there is an equivalent individual in mod2.
+   This ensures that the search is exhaustive."
   (and  
-   (subsetp (footnote entity-1) (footnote entity-2) :test #'equals)
-   (subsetp (footnote entity-2) (footnote entity-1) :test #'equals)
-   (subsetp (individuals entity-1) (individuals entity-2) :test #'individual-equal)
-   (subsetp (individuals entity-2) (individuals  entity-1) :test #'individual-equal)
-   (and (equal (length (individuals entity-1)) (length (individuals entity-2))))))
+   (subsetp (footnote mod1) (footnote mod2) :test #'equals)
+   (subsetp (footnote mod2) (footnote mod1) :test #'equals)
+   (subsetp (individuals mod1) (individuals mod2) :test #'individual-equal)
+   (subsetp (individuals mod2) (individuals mod1) :test #'individual-equal)
+   (and (equal (length (individuals mod1)) (length (individuals mod2))))))
+
+(defmethod equals ((mod1 t-model) (mod2 t-model))
+  (and  
+   (subsetp (footnote mod1) (footnote mod2) :test #'equals)
+   (subsetp (footnote mod2) (footnote mod1) :test #'equals)
+   (equals (moments mod1) (moments mod2))))
 
 (defmethod equals ((mod1 s-model) (mod2 s-model))
    (and  
@@ -204,7 +123,7 @@
   (when (equalp (class-of entity-1) (class-of entity-2))
     (let ((slot-names (mapcar #'(lambda (x) (slot-definition-name x)) (class-direct-slots (class-of entity-1)))))
       (every #'(lambda (x) (equals (slot-value entity-1 x) (slot-value entity-2 x))) slot-names))))
- 
+
 (defun has-negative-properties (individual) ; ssk
   "Returns t if a list within individual contains '-"
   (let ((neg-prop nil))
@@ -228,7 +147,7 @@
     (dotimes (i number)(setf indivs (cons (list arg) indivs)))
     (make-instance 'q-model :indivs indivs :fn nil)))
 
-(defun make-complex-individuals(number indiv) ; pjl
+(defun make-complex-individuals (number indiv) ; pjl
   "Given a cardinal number and indiv such as '((c)(-b))
    makes that number of them
    (make-complex-individuals 3 '((a)(- b))) =>
@@ -271,6 +190,9 @@
 ; Section 1.2: Intension manipulation functions
 ; ---------------------------------------------------------------------------------
 
+(defmethod terms ((intension intension))
+  (list (list (first-argument intension)) (list (second-argument intension))))
+
 (defmethod abbreviate ((model model))
   (format nil "~A" model))
 
@@ -280,13 +202,16 @@
 (defmethod abbreviate ((intension q-intension))
   "Makes an abbreviation of a premise 
    (abbreviate (parse '(some a are not b))) => 'Oab'"
-  (let ((subj (aref (string-downcase (symbol-name (first (subject intension)))) 0))
-        (obj  (aref (string-downcase (symbol-name (first (object intension)))) 0))
+  (let ((subj (aref (string-downcase (symbol-name (subject intension))) 0))
+        (obj  (aref (string-downcase (symbol-name (object intension))) 0))
         mood)
     (setf mood
           (cond
-           ((is-most intension)        (format nil "M~A~A~A" subj (if (negative-intension intension) "-" "") obj))
+           ((is-maj intension)         (format nil "Maj~A~A~A" subj (if (negative-intension intension) "-" "") obj))
+           ((is-min intension)         (format nil "Min~A~A~A" subj (if (negative-intension intension) "-" "") obj))
            ((is-few intension)         (format nil "F~A~A~A" subj (if (negative-intension intension) "-" "") obj))
+           ((is-most intension)        (format nil "M~A~A" subj obj))
+           ((is-most-not intension)    (format nil "M~A-~A" subj obj))
            ((is-some-not intension)    (format nil "O~A~A" subj obj))
            ((is-none intension)        (format nil "E~A~A" subj obj))
            ((is-some intension)        (format nil "I~A~A" subj obj))
@@ -296,10 +221,10 @@
     mood))
 
 (defmethod abbreviate ((intension t-intension))
- (let ((rel (string-downcase (relation intension)))
+ (let ((rel  (aref (string-upcase (relation intension)) 0))
        (subj (aref (string-downcase (subject intension)) 0))
        (obj  (aref (string-downcase (object intension)) 0)))
-   (format nil "~A(~A,~A)" rel subj obj)))
+   (format nil "~A~A~A" subj rel obj)))
 
 (defmethod abbreviate ((intension sp-intension))
  (let ((rel  (string-downcase (relation intension)))
@@ -311,13 +236,13 @@
   (cond
    ((is-affirmative-atom intension) (format nil "~A" (first-clause intension)))
    ((is-negative-atom intension) (format nil "¬~A" (first-clause intension)))
-   ((is-and intension) (format nil "and(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
-   ((is-nor intension) (format nil "nor(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
-   ((is-ori intension) (format nil "or(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
-   ((is-ore intension) (format nil "xor(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
-   ((is-if intension)  (format nil "if(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
-   ((is-iff intension) (format nil "iff(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
-   ((is-not intension) (format nil "not(~A)" (abbreviate (first-clause intension))))))
+   ((is-and intension) (format nil "(~A and ~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
+   ((is-nor intension) (format nil "(~A nor ~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
+   ((is-ori intension) (format nil "(~A or ~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
+   ((is-ore intension) (format nil "(~A xor ~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
+   ((is-if intension)  (format nil "(~A if ~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
+   ((is-iff intension) (format nil "(~A iff ~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
+   ((is-not intension) (format nil "¬(~A)" (abbreviate (first-clause intension))))))
 
 (defmethod abbreviate ((intension c-intension))
   (cond
@@ -325,7 +250,7 @@
      ((is-enable intension) (format nil "enable(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))
      ((is-prevent intension) (format nil "prevent(~A,~A)" (abbreviate (first-clause intension)) (abbreviate (second-clause intension))))))
 
-(defmethod get-syllogistic-figure ((premise-1 q-intension) (premise-2 q-intension)) ; pjl, slight mods from ssk + ml
+(defmethod get-syllogistic-figure ((premise-1 q-intension) (premise-2 q-intension))
   "Determines figure of the two premises by establishing the respective
    grammatical roles of the two end terms, e.g.,
    (get-syllogistic-figure (parse '(all b are a)) (parse '(all b are c)))
@@ -389,27 +314,15 @@
 ;    (print evaluated)
     (not (member nil evaluated))))
 
-(defmethod negative-intension ((intension q-intension))
-  "Checks whether intension is negative by checking that either
-   predicate is negative, quantifier is negative, but not both"
-  (let ((neg-quant (not (polarity intension)))
-        (neg-rel (negative-relation (relation intension)))) 
-    (and (or neg-quant neg-rel)
-         (not (and neg-quant neg-rel)))))
-  
-(defmethod affirmative-intension ((intension intension))
-  (not (negative-intension intension)))
-
 ; ---------------------------------------------------------------------------------
 ; Section 1.3: Helper fns for high level fns
 ; ---------------------------------------------------------------------------------
-
-(defmethod terms ((intension q-intension))
-  (list (subject intension) (object intension)))
+; Code written by Max Lotstein (ca. 2011-2012)
+; ---------------------------------------------------------------------------------
 
 (defmethod get-syll-end-terms ((premise1 q-intension) (premise2 intension))
   "Interface for syllogistic premises to get-end-terms"
-  (first (get-end-terms (list premise1 premise2))))
+  (flatten (first (get-end-terms (list premise1 premise2)))))
 
 (defun get-end-terms (intensions)
   "Given a set of intensions corresponding to a hypothetical set of premises,
@@ -465,8 +378,8 @@
    the list with frequency 1."
   (let ((frequency-count (list)))
     (dolist (intension intensions frequency-count)
-      (let ((subj (subject intension))
-            (obj  (object intension)))
+      (let ((subj (list (subject intension)))
+            (obj  (list (object intension))))
         (if (not (member subj frequency-count :key #'car :test #'equal))
             (setf frequency-count (append frequency-count (list (list subj 1))))
           (let ((subj-freq (cadr (find subj frequency-count :key #'car :test #'equal))))
@@ -533,8 +446,8 @@
     =>#2A((X 1 1 X) (X X 1 X) (X X X 1) (X X X X))"
   (let ((connectivity-matrix (make-array (list (length properties-list) (length properties-list)) :initial-element 'x)))
     (dolist (intension intensions connectivity-matrix)
-      (let* ((subj (subject intension))
-             (obj  (object intension))
+      (let* ((subj (list (subject intension)))
+             (obj  (list (object intension)))
              (subj-number (position subj properties-list :test #'equal))
              (obj-number (position obj properties-list :test #'equal)))
         (setf (aref connectivity-matrix subj-number obj-number) 1)
@@ -632,8 +545,64 @@
    (equal (car property) '-)))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.6: Q-model Functions
+; Section 1.6: Quantitative intension and model functions
 ; ---------------------------------------------------------------------------------
+
+(defmethod find-referent-in-model (referent (model q-model))
+  (helper-find-ref-in-model (list referent) (individuals model)))
+
+(defmethod find-referent-individuals-in-model (referent (model q-model)) ; ssk + ml
+  "Finds and returns all referent individuals in a model.
+   (find-referent-individuals-in-model '(A) '(((- A) (B)) ((A) (B)) ((A) (B)) (T20)))
+   => (((A) (B)) ((A) (B)))"
+  (let ((ref-indivs nil))
+    (dolist (individual (individuals model))
+      (when (member referent individual :test #'property-equal)
+        (push individual ref-indivs)))
+    ref-indivs))
+
+(defmethod find-subj&obj-in-model (subj obj (model q-model)) ; ssk
+  "Finds and returns all referent individuals in a model.
+   (find-subj&obj-in-model '(A) '(B) '(((- A) (B)) ((A) (- B))  ((A) (B)) ((A) (B)) (T20)))
+   => (((A) (B)) ((A) (B)))"
+  (let ((subj&obj-model nil))
+    (dolist (individual (individuals model))
+      (when (and (member subj individual :test #'property-equal)
+                 (member obj individual :test #'property-equal))
+        (push individual subj&obj-model)))
+    subj&obj-model))
+
+(defmethod find-subj-wo-obj-in-model (subj obj (model q-model)) ; ssk
+  "Finds and returns all referent individuals in a model.
+   (find-subj-wo-obj-in-model '(A) '(B) '(((- A) (B)) ((A) (- B))  ((A) (B)) ((A) (B)) (T20)))
+   => (((A) (B)) ((A) (B)))"
+  (let ((ref-indivs-model (find-referent-individuals-in-model subj model))
+        (subj-wo-obj-model nil))
+    (dolist (individual ref-indivs-model)
+      (when (not (and (member subj individual :test #'property-equal)
+                      (member obj individual :test #'property-equal)))
+        (push individual subj-wo-obj-model)))
+    subj-wo-obj-model))
+
+(defmethod get-referent-cardinality (referent (model q-model)) ; ssk
+   "Calculates cardinality of model with respect to a given referent, e.g.,
+   (get-referent-cardinality '(A) '(((- A) (B)) ((A) (B)) ((A) (B)) (T20)))
+   => 2"
+  (length (find-referent-individuals-in-model referent model)))
+
+(defmethod get-subj&obj-cardinality (subj obj (model q-model)) ; ssk
+   "Calculates cardinality of model subset that includes individuals that are
+    both subj & obj, e.g.,
+   (get-subj&obj-cardinality '(A) '(B) '(((A) (C)) ((A) (B)) ((A) (B)) (T20)))
+   => 2"
+  (length (find-subj&obj-in-model subj obj model)))
+
+(defmethod get-subj-wo-obj-cardinality (subj obj (model q-model)) ; ssk
+   "Calculates cardinality of model subset that includes individuals that are
+    subjs but NOT objs, e.g.,
+   (get-subj-wo-obj-cardinality '(A) '(B) '(((A) (C)) ((A) (B)) ((A) (B)) (T20)))
+   => 1"
+  (length (find-subj-wo-obj-in-model subj obj model)))
 
 (defun individual-equal (individual-1 individual-2)
 "This function returns true if the individuals have the same set of properties, regardless of ordering. 
@@ -666,37 +635,27 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
 (defun merge-individuals (indiv-1 indiv-2)
   (remove-duplicates (append indiv-1 indiv-2) :test #'property-equal))
 
-; ---------------------------------------------------------------------------------
-; Section 1.7: S-model functions
-; ---------------------------------------------------------------------------------
+(defmethod all-combinations ((terms list) (intension q-intension))
+  (cond ((is-setmem intension :n 1)
+         (list (if (affirmative-intension intension)
+                   (cons (first terms) (list (second terms)))
+                 (cons (first terms) (list (negate (second terms)))))
+               (cons (negate (first terms)) (list (second terms)))
+               (cons (negate (first terms)) (list (negate (second terms))))))
+        ((null terms) (list nil))
+        (t (append (mapcar #'(lambda (x) (cons (first terms) x)) (all-combinations (rest terms) intension))
+                   (mapcar #'(lambda (x) (cons (negate (first terms)) x)) (all-combinations (rest terms) intension))))))
 
-(defun is-atomic-model (model)
-  "Tests whether a given model is an atomic model, i.e., an s-model that contains
-   only atoms"
-  (and (typep model 's-model)
-       (every #'listp (entities model))
-       (every #'symbolp (mapcar #'first (entities model)))))
-
-(defun is-atomic-modelset (model)
-  "Test whether a given s-model is comprised of atomic models"
-  (and (typep model 's-model)
-       (every #'is-atomic-model (entities model))))
-
-(defmethod model-has-entity (entity (model q-model))
-  "Checks whether a model contains an individual.
-   (model-has-indivs '((A)) '( ((A)(B)) ((A)) (T0) ) ) => T
-   (model-has-indivs '((A)) '( ((A)(B)) ((C)) (T0) ) ) => NIL"
-  (member entity (individuals model) :test #'individual-equal))
-
-(defmethod add-footnote ((model model) (new-intension intension))
-  "DESTRUCTIVE
-   Takes a model and an intension and updates the footnote in the model."
-  (setf (footnote model) (append (footnote model) (list (copy-class-instance new-intension))))
-  model)
-
-; ---------------------------------------------------------------------------------
-; Section 1.9: Intension functions
-; ---------------------------------------------------------------------------------
+(defmethod negative-intension ((intension q-intension))
+  "Checks whether intension is negative by checking that either
+   predicate is negative, quantifier is negative, but not both"
+  (let ((neg-quant (not (polarity intension)))
+        (neg-rel (negative-relation (relation intension)))) 
+    (and (or neg-quant neg-rel)
+         (not (and neg-quant neg-rel)))))
+  
+(defmethod affirmative-intension ((intension intension))
+  (not (negative-intension intension)))
 
 (defmethod cardinality-value ((intension q-intension))
   "Returns concrete value of cardinality, e.g.,
@@ -729,12 +688,13 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
   "If intension specifies 'most', rtn it, else nil"
   (when (and (equalp (boundary intension) '((< CARDINALITY) (> (* 0.5 CARDINALITY))))
              (polarity intension)
+             (equalp (relation intension) 'INCLUDE)
              (footnotes intension))
     intension))
 
 (defmethod is-most-not ((intension q-intension))
   "If intension specifies 'most_not', rtn it, else nil"
-  (when (and (is-most intension)
+  (when (and (equalp (boundary intension) '((< CARDINALITY) (> (* 0.5 CARDINALITY))))
              (equalp (relation intension) 'NOT-INCLUDE))
     intension))
 
@@ -742,6 +702,34 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
   "If intension specifies 'few', rtn it, else nil"
   (when (and (equalp (boundary intension) '((< (* 0.5 CARDINALITY)) (> 0)))
              (polarity intension)
+             (footnotes intension))
+    intension))
+
+(defmethod is-maj ((intension q-intension))
+  "If intension specifies 'majority', rtn it, else nil"
+  (when (and (equalp (boundary intension) '((<= CARDINALITY) (> (* 0.5 CARDINALITY))))
+             (polarity intension)
+             (footnotes intension))
+    intension))
+
+(defmethod is-maj-not ((intension q-intension))
+  "If intension specifies 'majority', rtn it, else nil"
+  (when (and (equalp (boundary intension) '((<= CARDINALITY) (> (* 0.5 CARDINALITY))))
+             (equalp (relation intension) 'NOT-INCLUDE)
+             (footnotes intension))
+    intension))
+
+(defmethod is-min ((intension q-intension))
+  "If intension specifies 'minority', rtn it, else nil"
+  (when (and (equalp (boundary intension) '((< (* .5 cardinality)) (> 0)))
+             (polarity intension)
+             (footnotes intension))
+    intension))
+
+(defmethod is-min-not ((intension q-intension))
+  "If intension specifies 'minority', rtn it, else nil"
+  (when (and (equalp (boundary intension) '((< (* .5 cardinality)) (> 0)))
+             (equalp (relation intension) 'NOT-INCLUDE)
              (footnotes intension))
     intension))
   
@@ -775,14 +763,98 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
   "Outputs mood of assertion
    (mood (parse '(some a are not b))) => O "
     (cond
-     ((is-all intension)      'A)
+     ((is-all      intension) 'A)
      ((is-some-not intension) 'O)
-     ((is-none intension)     'E)
-     ((is-some intension)     'I)
-     ((is-most intension)     'M)
-     ((is-few intension)      'F)
-     ((is-setmem intension)  `(X ,(is-setmem intension)))
+     ((is-none     intension) 'E)
+     ((is-some     intension) 'I)
+     ((is-most     intension) 'M)
+     ((is-most-not intension) 'Mnot)
+     ((is-few      intension) 'F)
+     ((is-maj      intension) 'Maj)
+     ((is-min      intension) 'Min)
+     ((is-setmem intension)   `(X ,(is-setmem intension)))
      (t (error "Assertion cannot be intrepreted"))))
+
+; ---------------------------------------------------------------------------------
+; Section 1.7: Temporal intension and model functions
+; ---------------------------------------------------------------------------------
+
+(defmethod find-referent-in-model (referent (model t-model))
+  (or (helper-find-ref-in-model (list referent) (moments model))
+      (helper-find-ref-in-model (list referent 'START) (moments model))
+      (helper-find-ref-in-model (list referent 'END) (moments model))))
+
+(defmethod model-size ((model t-model))
+  "Gets the size of a temporal model, i.e., the number of distinct events, punctate
+   or durational, represented in the model."
+  (length (remove-if #'(lambda (x) (or (equal x 'START)
+                                       (equal x 'END)))
+                     (remove-duplicates (flatten (moments model))))))
+
+(defun moment-position (moment moments)
+  "Get position of moment in moments (a list of lists of lists)"
+  (position moment moments
+            :test #'(lambda (x y) (member x y :test #'equals))))
+
+(defun event-range (event moments)
+  "Gets range of event as an (X Y) tuple where X describes the
+   beginning of the event and Y describes its end as positions
+   in the list of moments"
+  (let* ((position (moment-position (list event) moments)))
+    (if position
+        (list position position)
+      (list (moment-position (list event 'START) moments)
+            (moment-position (list event 'END) moments)))))
+
+(defmethod is-punctate (event (model t-model))
+  "T if event is a punctate event in t- model, NIL otherwise"
+  (let ((range (event-range event (moments model))))
+    (and (first range)
+         (equal (first range) (second range)))))
+
+(defmethod duration (event (model t-model))
+  (let* ((range (event-range event (moments model))))
+    (- (second range) (first range))))
+
+(defmethod convert-to-durative (event (model t-model))
+  (if (is-punctate event model)
+    (let* ((position  (first (event-range event (moments model))))
+           (new-model (copy-class-instance model)))
+      (setf (moments new-model) (remove-from `(,event) (moments new-model)))
+      (setf (moments new-model) (insert-at `((,event END)) (moments new-model) position))
+      (setf (moments new-model) (insert-at `((,event START)) (moments new-model) position))
+      new-model)
+    model))
+
+(defmethod convert-to-punctate (event (model t-model))
+  (if (is-punctate event model)
+      model
+    (let* ((start-pos (first (event-range event (moments model))))
+           (new-model (copy-class-instance model)))
+      (setf (moments new-model) (remove-from `(,event START) (moments new-model)))
+      (setf (moments new-model) (remove-from `(,event END)   (moments new-model)))
+      (setf (moments new-model) (insert-at `((,event))       (moments new-model) start-pos))
+      new-model)))  
+
+(defun insert-at (item list index &key (append nil))
+  "Inserts item into list (of lists) at position index; if :append is t,
+   then it appends the item to the end of list at position index"
+  (cond
+    ((< index 0)                     (append item (copy-list list)))
+    ((and (= index 0)
+          (or (equals append :after)
+              (equals append t)))    (cons (append (copy-list (first list)) item) (rest list)))
+    ((and (= index 0)
+          (equals append :before))   (cons (append item (copy-list (first list))) (rest list)))
+    ((and (= index 0) (not append))  (cons item list))
+    ((endp list)                     (list item))
+    (t (cons (first list)            (insert-at item (rest list) (1- index) :append append)))))
+
+(defun remove-from (item list-of-lists)
+  "Removes an item from a list of lists, and deletes nils produced if necessary"
+  (let* ((list-of-lists (mapcar #'(lambda (x) (remove item x :test #'equals)) list-of-lists))
+         (list-of-lists (remove-if #'null list-of-lists)))
+    list-of-lists))
 
 (defmethod is-before ((intension t-intension))
   "If intension is 'before' relation, rtn it, else nil"
@@ -814,77 +886,42 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
    ((is-during intension) 'during)
    (t (error "Assertion cannot be intrepreted"))))
 
-(defmethod is-right ((intension sp-intension))
-  "If intension is 'right' relation, rtn it, else nil"
-  (when (and (equals (spatial-relation intension) '+)
-             (equals (spatial-dimension intension) :left-right))
-    intension))
+; ---------------------------------------------------------------------------------
+; Section 1.8: Sentential intension and model functions
+; ---------------------------------------------------------------------------------
 
-(defmethod is-left ((intension sp-intension))
-  "If intension is 'left' relation, rtn it, else nil"
-  (when (and (equals (spatial-relation intension) '-)
-             (equals (spatial-dimension intension) :left-right))
-    intension))
+(defmethod find-referent-in-model ((referent s-intension) (model s-model))
+    (when (is-atom referent)
+      (find-referent-in-model (first-argument referent) model)))
 
-(defmethod is-above ((intension sp-intension))
-  "If intension is 'above' relation, rtn it, else nil"
-  (when (and (equals (spatial-relation intension) '+)
-             (equals (spatial-dimension  intension) :below-above))
-    intension))
+(defmethod find-referent-in-model ((referent symbol) (model s-model))
+  (if (is-atomic-model model)
+      (find-referent-in-modelset (list referent) (list (possibilities model)))
+    (find-referent-in-modelset (list referent) (mapcar #'possibilities (possibilities model)))))
 
-(defmethod is-below ((intension sp-intension))
-  "If intension is 'below' relation, rtn it, else nil"
-  (when (and (equals (spatial-relation intension) '-)
-             (equals (spatial-dimension intension) :below-above))
-    intension))
+(defun is-atomic-model (model)
+  "Tests whether a given model is an atomic model, i.e., an s-model that contains
+   only atoms"
+  (and (typep model 's-model)
+       (every #'listp (entities model))
+       (every #'symbolp (mapcar #'first (entities model)))))
 
-(defmethod is-front ((intension sp-intension))
-  "If intension is 'front' relation, rtn it, else nil"
-  (when (and (equals (spatial-relation intension) '+)
-             (equals (spatial-dimension intension) :behind-front))
-    intension))
+(defun is-atomic-modelset (model)
+  "Test whether a given s-model is comprised of atomic models"
+  (and (typep model 's-model)
+       (every #'is-atomic-model (entities model))))
 
-(defmethod is-behind ((intension sp-intension))
-  "If intension is 'behind' relation, rtn it, else nil"
-  (when (and (equals (spatial-relation intension) '-)
-             (equals (spatial-dimension intension) :behind-front))
-    intension))
+(defmethod model-has-entity (entity (model q-model))
+  "Checks whether a model contains an individual.
+   (model-has-indivs '((A)) '( ((A)(B)) ((A)) (T0) ) ) => T
+   (model-has-indivs '((A)) '( ((A)(B)) ((C)) (T0) ) ) => NIL"
+  (member entity (individuals model) :test #'individual-equal))
 
-(defmethod is-between ((intension sp-intension))
-  "If intension is 'between' relation, rtn it, else nil"
-  (let* ((template (spatial-template intension))
-         (middle (first-argument intension))
-         (sides  (second-argument intension)))
-      (when (and template
-                 (symbolp middle)
-                 (listp sides)
-                 (member (list (first sides) middle (second sides)) template :test #'equals)
-                 (member (list (second sides) middle (first sides)) template :test #'equals))
-        intension)))
-
-(defmethod is-same ((intension sp-intension))
-  "If intension is 'in same place' relation, rtn it, else nil"
-  (when (equals (spatial-relation intension) :equal)
-    intension))
-
-(defmethod is-different ((intension sp-intension))
-  "If intension is 'in different place' relation, rtn it, else nil"
-  (when (equals (spatial-relation intension) :not-equal)
-    intension))
-
-(defmethod relation ((intension sp-intension))
-  "Outputs relation of assertion
-   (relation (parse '(A is behind B))) => B "
-  (cond
-   ((is-right intension)     'right)
-   ((is-left intension)      'left)
-   ((is-above intension)     'above)
-   ((is-below intension)     'below)
-   ((is-front intension)     'front)
-   ((is-behind intension)    'behind)
-   ((is-same intension)      'same)
-   ((is-different intension) 'different)
-   (t (error "Assertion cannot be intrepreted"))))
+(defmethod add-footnote ((model model) (new-intension intension))
+  "DESTRUCTIVE
+   Takes a model and an intension and updates the footnote in the model."
+  (setf (footnote model) (append (footnote model) (list (copy-class-instance new-intension))))
+  model)
 
 (defmethod is-possible (modal-status)
   (or (equal modal-status 'possible)
@@ -991,6 +1028,111 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
              (null (neither intension)))
     intension))
 
+(defun reverse-modal (x)
+  "Returns reversed modal status, i.e., impossible <-> possible"
+  (cond
+   ((null x) nil)
+   ((or (equal x 'possible)
+            (equal x 'fact)
+            (equal x 'initial))
+    'impossible)
+   ((equal x 'impossible)
+    'possible)))
+
+; ---------------------------------------------------------------------------------
+; Section 1.9: Spatial intension and model functions
+; ---------------------------------------------------------------------------------
+
+(defmethod find-referent-in-model (referent (model sp-model))
+  (thing-position referent (things model)))
+
+(defun thing-position (thing things)
+  "Gets position of a specified object (thing) from list representing a vector (depth = 2), matrix (depth = 3),
+   or 3D grid (depth = 4)."
+  (let ((tester  (lambda (x y) (member x (flatten y) :test #'equals))))
+    (case (depth things)
+      (2 (position thing things :test tester))
+      (3 (let* ((list-pos (position thing things :test tester)))
+           (when list-pos (list list-pos (thing-position thing (nth list-pos things))))))
+      (4 (let* ((list-pos (position thing things :test tester)))
+           (when list-pos (append (list list-pos) (thing-position thing (nth list-pos things)))))))))
+
+(defmethod is-right ((intension sp-intension))
+  "If intension is 'right' relation, rtn it, else nil"
+  (when (and (equals (spatial-relation intension) '+)
+             (equals (spatial-dimension intension) :left-right))
+    intension))
+
+(defmethod is-left ((intension sp-intension))
+  "If intension is 'left' relation, rtn it, else nil"
+  (when (and (equals (spatial-relation intension) '-)
+             (equals (spatial-dimension intension) :left-right))
+    intension))
+
+(defmethod is-above ((intension sp-intension))
+  "If intension is 'above' relation, rtn it, else nil"
+  (when (and (equals (spatial-relation intension) '+)
+             (equals (spatial-dimension  intension) :below-above))
+    intension))
+
+(defmethod is-below ((intension sp-intension))
+  "If intension is 'below' relation, rtn it, else nil"
+  (when (and (equals (spatial-relation intension) '-)
+             (equals (spatial-dimension intension) :below-above))
+    intension))
+
+(defmethod is-front ((intension sp-intension))
+  "If intension is 'front' relation, rtn it, else nil"
+  (when (and (equals (spatial-relation intension) '+)
+             (equals (spatial-dimension intension) :behind-front))
+    intension))
+
+(defmethod is-behind ((intension sp-intension))
+  "If intension is 'behind' relation, rtn it, else nil"
+  (when (and (equals (spatial-relation intension) '-)
+             (equals (spatial-dimension intension) :behind-front))
+    intension))
+
+(defmethod is-between ((intension sp-intension))
+  "If intension is 'between' relation, rtn it, else nil"
+  (let* ((template (spatial-template intension))
+         (middle (first-argument intension))
+         (sides  (second-argument intension)))
+      (when (and template
+                 (symbolp middle)
+                 (listp sides)
+                 (member (list (first sides) middle (second sides)) template :test #'equals)
+                 (member (list (second sides) middle (first sides)) template :test #'equals))
+        intension)))
+
+(defmethod is-same ((intension sp-intension))
+  "If intension is 'in same place' relation, rtn it, else nil"
+  (when (equals (spatial-relation intension) :equal)
+    intension))
+
+(defmethod is-different ((intension sp-intension))
+  "If intension is 'in different place' relation, rtn it, else nil"
+  (when (equals (spatial-relation intension) :not-equal)
+    intension))
+
+(defmethod relation ((intension sp-intension))
+  "Outputs relation of assertion
+   (relation (parse '(A is behind B))) => B "
+  (cond
+   ((is-right intension)     'right)
+   ((is-left intension)      'left)
+   ((is-above intension)     'above)
+   ((is-below intension)     'below)
+   ((is-front intension)     'front)
+   ((is-behind intension)    'behind)
+   ((is-same intension)      'same)
+   ((is-different intension) 'different)
+   (t (error "Assertion cannot be intrepreted"))))
+
+; ---------------------------------------------------------------------------------
+; Section 1.10: Causal intension and model functions
+; ---------------------------------------------------------------------------------
+
 (defmethod is-cause ((intension c-intension))
   "If intension is a cause, rtn it, else nil"
   (when (and (is-impossible (first-only intension))
@@ -1011,17 +1153,6 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
              (is-possible (second-only intension))
              (is-possible (neither intension)))
     intension))
-
-(defun reverse-modal (x)
-  "Returns reversed modal status, i.e., impossible <-> possible"
-  (cond
-   ((null x) nil)
-   ((or (equal x 'possible)
-            (equal x 'fact)
-            (equal x 'initial))
-    'impossible)
-   ((equal x 'impossible)
-    'possible)))
 
 ; ---------------------------------------------------------------------------------
 ; Section 1.11: Tracer classe and functions
@@ -1414,7 +1545,7 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
          (relations    (flatten relations)))
     relations))
 
-(defun filter-relations (relations)
+(defun pre-filter-relations (relations)
   (let ((same-relations (remove-if-not #'is-same relations)))
     (dolist (same-rel same-relations)
       (dolist (rel (mapcar #'copy-class-instance relations))
@@ -1452,7 +1583,7 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
        (format t "")
        (setf description
              (format nil "~{~#[None~;~a~;~a and ~a~:;~@{~a~#[~;, and ~:;,~%~]~}~]~:}"
-                     (mapcar #'(lambda (x) (to-english x)) (filter-relations (find-all-relations model)))))
+                     (mapcar #'(lambda (x) (to-english x)) (pre-filter-relations (find-all-relations model)))))
        (format t "Description~%-----------~%~A.~%~%" description)
        (setf (description output) description))
       (validate

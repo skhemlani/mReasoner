@@ -86,6 +86,9 @@
    - shifting event later"
   '((shift-event-earlier "shifting event earlier")
     (shift-event-later "shifting event later")
+    (expand-event "expanding event")
+    (convert-to-punctate-and-shift "converting to punctate and shifting")
+;    (exhaustive-search "exhaustive search")
 ))
 
 ; ---------------------------------------------------------------------------------
@@ -131,12 +134,14 @@
    Else, if footnote is in A-mood, return subject and object
    Else, if footnote is in E-mood, return subject and -object
    Else return nil"
-  (when (equal property (subject fn))
-    (cond
-     ((is-all fn)    (list (subject fn) (object fn)))
-     ((is-none fn)   (list (subject fn) (negate-property (object fn))))
-     ((is-setmem fn) (list (subject fn) (object fn)))
-     (t              nil))))
+  (let ((subj (list (subject fn)))
+        (obj (list (object fn))))
+    (when (equal property subj)
+      (cond
+       ((is-all fn)    (list subj obj))
+       ((is-none fn)   (list subj (negate-property obj)))
+       ((is-setmem fn) (list subj obj))
+       (t              nil)))))
 
 (defmethod find-constraint (property (fn t-intension))
   "If property != subject, then nil.
@@ -169,8 +174,8 @@ break-model
 (defmethod break-and-add-negative ((conclusion q-intension) (model q-model) &key (validate-true nil))
   "Takes a model and tries to break every instance of subj and obj apart;
    if it succeeds, returns broken model, else nil."
-  (let* ((subj (subject conclusion))
-         (obj (object conclusion))
+  (let* ((subj (list (subject conclusion)))
+         (obj (list (object conclusion)))
          (fn (footnote model))
          broken-model
          (broken-indivs           (break-individuals conclusion subj obj fn (individuals model)))
@@ -194,12 +199,11 @@ break-model
 (defmethod break-model ((conclusion q-intension) (model q-model) &key (validate-true nil))
   "Takes a model and tries to break every instance of subj and obj apart;
    if it succeeds, returns broken model, else nil."
-  (let* ((broken-indivs (break-individuals conclusion (subject conclusion) (object conclusion)
+  (let* ((broken-indivs (break-individuals conclusion (list (subject conclusion)) (list (object conclusion))
                                            (footnote model)  (individuals model)))
          (broken-model  (copy-class-instance model)))
     (setf (individuals broken-model) broken-indivs)
-    (if (and ;(is-model-breakable (subject conclusion) (object conclusion) (footnote model))
-             (validate conclusion (list broken-model) :validate-true validate-true)
+    (if (and (validate conclusion (list broken-model) :validate-true validate-true)
              (validate-all-conclusions (footnote model) (list broken-model)))
         broken-model
       nil)))
@@ -300,8 +304,8 @@ add-affirmative        -- tries to add individual, an end term, to refute affirm
          (((B) (A) (C)) ((B) (A) (C)) ((B) (A) (C)) ((A)) (T7))
    Calls add-affirm to try to add end term. If conclusion is NOT validated in new-model
    then it is refuted and so rtns new-model"
-  (let ((end-1 (subject conclusion))
-        (end-2 (object conclusion))
+  (let ((end-1 (list (subject conclusion)))
+        (end-2 (list (object conclusion)))
         (new-model (copy-class-instance model)))
     (dotimes (i number) (setf (individuals new-model) (add-affirm end-1 end-2 new-model)))
     (when (and (validate conclusion (list new-model) :validate-true validate-true)
@@ -353,7 +357,7 @@ add-negative          -- adds properties to individuals to try to refute negativ
     => (((A) (- B) (C)) ((A) (- B) (C)) ((A) (- B) (C)) ((B) (C)) ((B) (C)) ((B) (C)) (T274))
    If add-negat adds individuals and so new-model not equal to existing model then
    If conclusion is not true in model returns model"
-  (let ((end-1 (subject conclusion)) (end-2 (object conclusion))
+  (let ((end-1 (list (subject conclusion))) (end-2 (list (object conclusion)))
         (new-model (copy-class-instance model)))
     (if (setf (individuals new-model) (add-negat end-1 end-2 model))
         (when (validate conclusion (list new-model) :validate-true validate-true) new-model))))
@@ -457,8 +461,8 @@ add-negative          -- adds properties to individuals to try to refute negativ
  "!!! SSK 12.2.13: documentation needed"
  (let* ((fn (footnote model))
         (terms (remove-duplicates (mapcan #'terms fn) :test #'equals))
-        (subject (subject conclusion))
-        (object (object conclusion))
+        (subject (list (subject conclusion)))
+        (object (list (object conclusion)))
         (unconstrained-terms (remove-if #'(lambda (x) (recursively-find-constraints x fn)) terms))
         (number-to-add       (+ (get-referent-cardinality subject model)
                                 (get-referent-cardinality object model)))
@@ -475,8 +479,8 @@ add-negative          -- adds properties to individuals to try to refute negativ
                                          &key (validate-true t) (number-to-add 0))
   "!!! SSK 12.2.13: documentation needed"
   (if (= 0 number-to-add) nil
-    (let* ((subject (subject conclusion))
-           (object (object conclusion))
+    (let* ((subject (list (subject conclusion)))
+           (object (list (object conclusion)))
            (indv-1 (add-neg subject object model-indivs subject-constraints))
            (indv-2 (add-neg object subject model-indivs object-constraints))
            (indv-1&2 (add-neg object subject indv-1 object-constraints))
@@ -860,8 +864,8 @@ Then, iterate through the list to get each possible pair of individuals.
 
 (defmethod negate-individuals ((conclusion q-intension) (model q-model) &key (validate-true nil))
   "Systematically negates individuals"
-  (let ((subj (subject conclusion))
-        (obj (object conclusion))
+  (let ((subj (list (subject conclusion)))
+        (obj (list (object conclusion)))
         (counterexample (copy-class-instance model))
         individual)
     (dotimes (i (length (individuals counterexample)))
@@ -898,7 +902,7 @@ Then, iterate through the list to get each possible pair of individuals.
 (defmethod replace-properties ((conclusion q-intension) (model q-model) &key (validate-true nil))
   "This fn first minimizes a model; then it progressively drops each individual
    and attempts to add additional properties."
-  (let* ((subject   (subject conclusion))
+  (let* ((subject   (list (subject conclusion)))
          (constraints (recursively-find-constraints subject (footnote model)))
          (indivs    (individuals model))
          (new-model (copy-class-instance model))
@@ -917,7 +921,6 @@ Then, iterate through the list to get each possible pair of individuals.
         (cons (list constraints) (drop-unconstrained-properties (rest individuals) subject constraints))
       (cons (first individuals) (drop-unconstrained-properties (rest individuals) subject constraints)))))
 
-
 ; ---------------------------------------------------------------------------------
 ; Section 9.8: Shifting event earlier or later
 ; ---------------------------------------------------------------------------------
@@ -926,12 +929,29 @@ Then, iterate through the list to get each possible pair of individuals.
   (let* ((subj     (subject conclusion))
          (obj      (object conclusion))
          (subj-r   (event-range subj (moments model)))
-         (obj-r    (event-range obj (moments model)))
-         (models   (if (or (null (first subj-r)) (null (first obj-r)))
-                       (list model)
-                     (append (progressively-shift-earlier conclusion subj model subj-r :validate-true validate-true)
-                             (progressively-shift-earlier conclusion obj model obj-r :validate-true validate-true)))))
+         (obj-r    (event-range obj (moments model))))
+    (unless (and (is-punctate subj model) (is-punctate obj model))
+      (setf model (convert-to-durative subj model))
+      (setf model (convert-to-durative obj model))
+      (setf subj-r (event-range subj (moments model)))
+      (setf obj-r (event-range obj (moments model))))
+    (setf models
+          (if (or (null (first subj-r)) (null (first obj-r)))
+              (list model)
+            (append (progressively-shift-earlier conclusion subj model subj-r :validate-true validate-true)
+                    (progressively-shift-earlier conclusion obj model obj-r :validate-true validate-true))))
     (first models)))
+
+#|(defmethod progressively-shift-subject-and-object ((conclusion t-intension) (model t-model) &key (validate-true nil))
+  (let* ((subj     (subject conclusion))
+         (obj      (object conclusion))
+         (subj-r   (event-range subj (moments model)))
+         (obj-r    (event-range obj (moments model))))
+    (if (or (null (first subj-r)) (null (first obj-r)))
+        nil
+      (append
+       (progressively-shift-earlier conclusion subj model subj-r :validate-true validate-true)
+       (progressively-shift-earlier conclusion obj model obj-r :validate-true validate-true)))))|#
 
 (defun progressively-shift-earlier (conclusion event model range &key (validate-true nil))
   (if (< (first range) 1) nil
@@ -952,12 +972,12 @@ Then, iterate through the list to get each possible pair of individuals.
                                                                   (1- (second range))) :validate-true validate-true)))))
 
 (defun shift-earlier-by-one (event model range)
-  "Shifts an event marker in a model later by one, but does so in a way that either
+  "Shifts an event marker in a model earlier by one, but does so in a way that either
    appends to the succeeding moment or creates a new moment before the preceding moment."
   (if (null (first range)) (list model)
     (let* ((model1 (copy-class-instance model))
            (model2 (copy-class-instance model)))
-      (if (punctate-event-p event (moments model))
+      (if (is-punctate event model)
           (progn
             (setf (moments model1) (remove-from `(,event) (moments model1)))
             (setf (moments model1) (insert-at `((,event)) (moments model1) (1- (first range)) :append t))
@@ -975,28 +995,29 @@ Then, iterate through the list to get each possible pair of individuals.
       (list model1 model2))))
 
 (defmethod shift-event-later ((conclusion t-intension) (model t-model) &key (validate-true nil))
-  (let* ((subj       (subject conclusion))
-         (obj        (object conclusion))
-         (subj-r     (event-range subj (moments model)))
-         (obj-r      (event-range obj (moments model)))
-          (models   (if (or (null (first subj-r)) (null (first obj-r)))
-                       (list model)
-                     (append (progressively-shift-earlier conclusion subj (first (shift-to-end subj model subj-r)) subj-r :validate-true validate-true)
-                             (progressively-shift-earlier conclusion subj (second (shift-to-end subj model subj-r)) subj-r :validate-true validate-true)
-                             (progressively-shift-earlier conclusion obj (first (shift-to-end obj model obj-r)) obj-r :validate-true validate-true)
-                             (progressively-shift-earlier conclusion obj (second (shift-to-end obj model obj-r)) obj-r :validate-true validate-true)))))
-    models))
-
-(defmethod duration (event (model t-model))
-  (let* ((range (event-range event (moments model))))
-    (- (second range) (first range))))
+  (let* ((subj     (subject conclusion))
+         (obj      (object conclusion))
+         (subj-r   (event-range subj (moments model)))
+         (obj-r    (event-range obj (moments model)))
+         models)
+    (unless (and (is-punctate subj model) (is-punctate obj model))
+      (setf model (convert-to-durative subj model))
+      (setf model (convert-to-durative obj model))
+      (setf subj-r (event-range subj (moments model)))
+      (setf obj-r (event-range obj (moments model))))
+    (if (or (null (first subj-r)) (null (first obj-r)))
+        (list model)
+      (append (progressively-shift-earlier conclusion subj (first (shift-to-end subj model subj-r)) subj-r :validate-true validate-true)
+              (progressively-shift-earlier conclusion subj (second (shift-to-end subj model subj-r)) subj-r :validate-true validate-true)
+              (progressively-shift-earlier conclusion obj (first (shift-to-end obj model obj-r)) obj-r :validate-true validate-true)
+              (progressively-shift-earlier conclusion obj (second (shift-to-end obj model obj-r)) obj-r :validate-true validate-true)))))
 
 (defun shift-to-end (event model range)
-  "Shifts an event marker in a model earlier by one, but does so in a way that either
+  "Shifts an event marker in a model later by one, but does so in a way that either
    appends to the preceding moment or creates a new moment before the preceding moment."
   (let* ((model1 (copy-class-instance model))
          (model2 (copy-class-instance model)))
-    (if (punctate-event-p event (moments model))
+    (if (is-punctate event model)
         (progn
           (setf (moments model1) (remove-from `(,event) (moments model1)))
           (setf (moments model1) (insert-at `((,event)) (moments model1) (1- (length (moments model))) :append t))
@@ -1015,16 +1036,80 @@ Then, iterate through the list to get each possible pair of individuals.
                                                                                 (duration event model)) :append nil))))
     (list model1 model2)))
 
+(defun shift-start-earlier-by-one (event model range)
+  "Shifts an event's START marker in a model earlier by one, but does so in a way that either
+   appends to the succeeding moment or creates a new moment before the preceding moment."
+  (if (null (first range)) (list model)
+    (let* ((model1 (copy-class-instance model))
+           (model2 (copy-class-instance model)))
+      (setf (moments model1) (remove-from `(,event START) (moments model1)))
+      (setf (moments model1) (insert-at `((,event START)) (moments model1) (1- (first range)) :append t))
+      (setf (moments model2) (remove-from `(,event START) (moments model2)))
+      (setf (moments model2) (insert-at `((,event START)) (moments model2) (1- (first range)) :append nil))
+      (list model1 model2))))
+
+(defun shift-end-later-by-one (event model range)
+  "Shifts an event's END marker in a model later by one, but does so in a way that either
+   appends to the succeeding moment or creates a new moment before the preceding moment."
+  (if (null (first range)) (list model)
+    (let* ((model1 (copy-class-instance model))
+           (model2 (copy-class-instance model)))
+      (setf (moments model1) (remove-from `(,event END) (moments model1)))
+      (setf (moments model1) (insert-at `((,event END)) (moments model1) (second range) :append t))
+      (setf (moments model2) (remove-from `(,event END) (moments model2)))
+      (setf (moments model2) (insert-at `((,event END)) (moments model2) (1+ (second range)) :append nil))
+      (list model1 model2))))
+
+(defun progressively-expand-event (conclusion event model range &key (validate-true nil))
+  (if (or (< (first range) 1) (> (second range) (length (moments model)))) nil
+    (let* ((shifted-start    (shift-start-earlier-by-one event model range))
+           (shifted-end      (shift-end-later-by-one event model range))
+           (shifted-end1     (first shifted-end))
+           (shifted-end2     (second shifted-end))
+           (shifted-end1-r   (event-range event (moments shifted-end1)))
+           (shifted-end2-r   (event-range event (moments shifted-end2)))
+           (shifted-models   (append shifted-start
+                                     shifted-end
+                                     (shift-end-later-by-one event shifted-end1 shifted-end1-r)
+                                     (shift-end-later-by-one event shifted-end2 shifted-end2-r)))
+           (validated-models (filter-validated-models conclusion shifted-models :validate-true validate-true)))
+      (if validated-models validated-models
+       (mapcan #'(lambda (x)
+                    (progressively-expand-event conclusion event x (list (1- (first range))
+                                                                         (second range)) :validate-true validate-true))
+                shifted-models)))))
+
+(defmethod expand-event ((conclusion t-intension) (model t-model) &key (validate-true nil))
+  (let* ((subj   (subject conclusion))
+         (obj    (object conclusion))
+         (subj-r (event-range subj (moments model)))
+         (obj-r  (event-range obj (moments model)))
+         (model  (copy-class-instance model))
+         (model  (convert-to-durative subj model))
+         (model  (convert-to-durative obj model))
+         (expanded-s (progressively-expand-event conclusion subj model subj-r :validate-true validate-true)) 
+         (expanded-o (progressively-expand-event conclusion obj model obj-r :validate-true validate-true)))
+    (append expanded-s expanded-o)))
+
+(defmethod convert-to-punctate-and-shift ((conclusion t-intension) (model t-model) &key (validate-true nil))
+  (let* ((subj   (subject conclusion))
+         (obj    (object conclusion))
+         (model1 (convert-to-punctate subj model))
+         (model2 (convert-to-punctate obj model))
+         (model1 (first (shift-to-end subj model1 (event-range subj (moments model1)))))
+         (model2 (first (shift-to-end obj model2 (event-range obj (moments model2))))))
+    (append (progressively-shift-earlier conclusion subj model1 (event-range subj (moments model1)) :validate-true validate-true)
+            (progressively-shift-earlier conclusion obj model2 (event-range obj (moments model2)) :validate-true validate-true))))
+
 ; ---------------------------------------------------------------------------------
 ; Section 9.9: Exhaustive search
 ; ---------------------------------------------------------------------------------
 
 (defmethod exhaustive-search ((conclusion q-intension) (model q-model) &key (validate-true nil))
   (let* ((terms (remove-duplicates (mapcan #'terms (footnote model)) :test #'equals))
-         (all-individuals (generate-all-combinations terms conclusion))
          k-combinations models)
     (dotimes (i *exhaustive-search-depth*)
-      (setf k-combinations (combinations-with-replacement all-individuals (+ 2 i)))
+      (setf k-combinations (combinations-with-replacement (all-combinations terms conclusion) (+ 2 i)))
       (setf models (mapcar #'(lambda (x) (make-instance 'q-model :indivs x :fn (footnote model))) k-combinations))
       (setf models (remove-if-not #'(lambda (x) (validate-all-conclusions (footnote model) (list x))) models))
       (setf models (remove-if-not #'(lambda (x) (validate conclusion (list x) :validate-true validate-true)) models))
@@ -1040,6 +1125,22 @@ Then, iterate through the list to get each possible pair of individuals.
      (mapcar #'(lambda(x) (cons (car lst) x))
              (combinations-with-replacement lst (- k 1)))
      (combinations-with-replacement (rest lst) k)))))
+
+#| (defmethod exhaustive-search ((conclusion t-intension) (model t-model) &key (validate-true nil))
+  (let* ((terms (remove-duplicates (flatten (mapcar #'terms (footnote model)))))
+         (temporal-terms (progn 
+                           (mapcan #'(lambda (x) (list (list x 'START) (list x 'END))) terms)))
+         all-orders temp-model)
+    (if (< (length temporal-terms) *exhaustive-search-depth*)
+        (progn
+          (setf all-orders (all-permutations temporal-terms))
+          (format t "~A" (length all-orders))
+          (dolist (o all-orders)
+            (setf temp-model (make-instance 't-model :moments o :fn (footnote model)))
+            (when (and (validate-all-conclusions (footnote model) (list temp-model))
+                       (validate conclusion (list temp-model) :validate-true validate-true))
+              (return-from exhaustive-search temp-model))))
+      (error "Too many terms to conduct exhaustive search")))) |#
 
 ; ---------------------------------------------------------------------------------
 ; Section 9.10: Levenshtein distance

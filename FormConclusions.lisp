@@ -25,40 +25,10 @@ to ((< cardinality)(> 0)).
 Finally, validate this conclusion in modelset. 
  |#
 
-#| 
- form-conclusion tries to replace existing old-concl with new weaker one, if possible
- form-conclusion
-    find-subject
-    find-object
-    validate
-    verbalize-intens -- puts intension into a verbal conclusion
-        find-subject - API, and all below are, except for form-concl
-        find-object
-        recover-quant-intens
-        recover-card
-        recover-card-arg -- new fn in API
-        recover-numprop
-        form-concl 
-    weaken-conclusion -- tries to weaken old-concl
-        recover-quant-intens
-        recover-card
-        recover-card-arg
-        recover-numprop
-        reset-cardinality -- resets numprop and predicate (if nec)
-            recover-quant-intens
-            recover-card-arg
-        negate-predicate-intens
-A separate function is:
-form-possible-conclusions
-    find-subject
-    find-object 
-    validate
-    form-conclus -- see below
-|#
-
 (defun form-weaker-conclusions (conclusions models)
   (if (weaken-conclusions?)
       (progn
+        (setf conclusions (remove-duplicates conclusions :test #'equals))
         (trc "System 2" (format nil "Weakening falsified conclusion(s) ~{~A~#[~:;, ~]~}" (mapcar #'abbreviate conclusions)))
         (let* ((weaker-conclusions (mapcan #'(lambda (c) (form-weaker-conclusion c models)) conclusions))
                (weaker-conclusions (remove-duplicates weaker-conclusions :test #'equals))
@@ -67,11 +37,13 @@ form-possible-conclusions
     (when conclusions (list *nvc*))))
 
 (defun form-weaker-conclusion (conclusion models)
-  (let (;(swapped (swap-terms-in-conclusion conclusion))
-        (weaker (weaken-conclusion conclusion)))
-    (when weaker
-      (append (list weaker) (form-weaker-conclusion weaker models))
-)))
+  (let* ((swapped (swap-terms-in-conclusion conclusion))
+         (weaker1 (weaken-conclusion conclusion))
+         (weaker2 (weaken-conclusion swapped)))
+    (when weaker1
+      (append (list weaker1 weaker2)
+              (form-weaker-conclusion weaker1 models)
+              (form-weaker-conclusion weaker2 models)))))
 
 (defmethod swap-terms-in-conclusion ((conclusion q-intension))
   "Merely takes a conclusion and creates a new one by swapping its terms around;
@@ -84,22 +56,16 @@ form-possible-conclusions
     new-conclusion))
 
 (defmethod weaken-conclusion ((conclusion q-intension))
-  "if cardinality is mutable, i.e., prefaced with '? setf mutable to t
-   if null.mutable or numprop is already < cardinality (indicating 'some assertion) rtns nil
-   elseif T T as final parameters of quantifier resets cardinality (minus 1), which also resets T nil
-   elseif nil T resets cardinality and negates predicate
-
-   weakens a conclusion 
-    (weaken-conclusion '((((? 3) (> 2)) (? 3) ((= CARDINALITY)) NIL T) (A) (INCLUDE (A) (C))))"
+  "when the cardinality is mutable + when the conclusion is not already weak itself,
+   (as in the case of Aab and Mab, weaken conclusion to existential quantifiers"
   (let* ((mutable (equalp '? (first (first (cardinality conclusion)))))
-         (cardinality (cardinality-value conclusion))
          weakened)
     (when (and mutable (not (or (is-some conclusion) (is-some-not conclusion))))
       (cond
-       ((is-all conclusion)
-        (setf weakened (parse `(Some ,(first (subject conclusion)) are ,(first (object conclusion))))))
-       ((is-none conclusion)
-        (setf weakened (parse `(Some ,(first (subject conclusion)) are not ,(first (object conclusion)))))))
+       ((or (is-all conclusion) (is-most conclusion))
+        (setf weakened (parse `(Some ,(subject conclusion) are ,(object conclusion)))))
+       ((or (is-none conclusion) (is-most-not conclusion))
+        (setf weakened (parse `(Some ,(subject conclusion) are not ,(object conclusion))))))
       weakened)))
 
 #|
@@ -122,21 +88,4 @@ form-possible-conclusions
 4. For each resulting quantifier, and for relation-term and arg in predicate, a conclusion
    is listed. The relation (are vs are not) is recovered from the model but in a simplistic
    way.
-|#
-
-#|
-form-conclus          - subj obj intensions and model rtns a conclusion
-                           AT PRESENT INTENSIONS PLAY NO ROLE, AND SYLLOGISTIC
-                           CONCLUSION IS TAKEN FOR GRANTED
-   find-referent-individuals-in-model - rtns all indivs in model with a given proprty API
-   negate-property       - negates a property
-   find-relation-in-indivs - uses model to rtn predicate for conclusion
-   form-concl            - interfaces parameter values from model with lexicon
-      match-features-lex - goes through global lexicon looking for match
-         match-features  - tries to match values with a lexical entry
-            recover-det-features - gets features for determiner from lexicon
-            update-boundary      - if pos, alters 'cardinality in lex-entry to match that in model
-            numprop-bounds       - applies numprop-bound to each lis in boundary-features
-               numprop-bound |   - interpolating numprop-in-model into boundary
-                                   feature and evaluting it.
 |#

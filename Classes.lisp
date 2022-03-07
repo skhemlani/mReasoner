@@ -129,6 +129,14 @@
   ((temporal-constraint  :accessor constraint  :initarg :constraint))
   (:documentation "Intension for causal connectives"))
 
+(defclass e-intension (intension)
+  ((first-argument  :accessor agent     :initarg :agent)
+   (affirms         :accessor affirms   :initarg :affirms)
+   (negates         :accessor negates   :initarg :negates)
+   (factivity       :accessor factivity :initarg :factivity)
+   (second-argument :accessor clause    :initarg :clause))
+  (:documentation "Intension for epistemic verbs"))
+
 ; ---------------------------------------------------------------------------------
 ; Section 3.4: Classes for models
 ; ---------------------------------------------------------------------------------

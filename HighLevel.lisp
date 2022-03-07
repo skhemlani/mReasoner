@@ -19,7 +19,7 @@
     (dolist (intension intensions)
       (when (not (typep intension 'intension))
         (setf intension (parse intension)))
-      (if models (setf models (build-model intension :m models))
+      (if models (setf models (build-model intension :models models))
         (setf models (build-model intension))))
     (setf (initial-model *tracer*) (first models))
     ;(trace-model (first models))
@@ -289,7 +289,7 @@
     (dolist (intension intensions)
       (setf new-models nil)
       (handler-case
-          (setf new-models (if models (build-model intension :m models :s2 system2)
+          (setf new-models (if models (build-model intension :models models)
                              (build-model intension)))
         (consistency-error ()
           (if (not system2)

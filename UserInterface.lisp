@@ -140,7 +140,7 @@
                                       :separator
                                       "Temporal reasoning"
                                       "Temporal inferences (Experiments 1 and 2; Khemlani, Harrison, & Trafton, in preparation)"
-                                      "Temporal inferences (Experiment 3; Khemlani, Harrison, & Trafton, in preparation)"
+                                      "Durational inferences (Experiment 1; Kelly, Khemlani, & Johnson-Laird, 2020"
                                       "Temporal inferences (Experiment 1; Schaeken, Johnson-Laird, & d'Ydewalle, 1996)"
                                       "Temporal inferences (Experiment 2; Schaeken, Johnson-Laird, & d'Ydewalle, 1996)")
                              :selection-callback 'load-experiment
@@ -510,7 +510,9 @@
    (list "Mb-a" "Most B are not A" Mb-a)
    (list "Mb-c" "Most B are not C" Mb-c)
    (list "Mc-b" "Most C are not B" Mc-b)
-   (list "aBb" "A happened before B" aBb)
+   ; Temporal intensions
+   ; -------------------------------------------------------------
+#|   (list "aBb" "A happened before B" aBb)
    (list "aBc" "A happened before C" aBc2)
    (list "aBd" "A happened before D" aBd)
    (list "aBe" "A happened before E" aBe)
@@ -530,8 +532,6 @@
    (list "eBb" "E happened before B" eBb)
    (list "eBc" "E happened before C" eBc2)
    (list "eBd" "E happened before D" eBd)
-   ; Temporal intensions
-   ; -------------------------------------------------------------
    (list "aAb" "A happened after B" aAb2)
    (list "aAc" "A happened after C" aAc2)
    (list "aAd" "A happened after D" aAd)
@@ -591,7 +591,7 @@
    (list "eWa" "E happened while A" eWa)
    (list "eWb" "E happened while B" eWb)
    (list "eWc" "E happened while C" eWc)
-   (list "eWd" "E happened while D" eWd)
+   (list "eWd" "E happened while D" eWd)|#
 ))
 
 (defun get-intension-parameter-value (slot)
@@ -1100,7 +1100,7 @@
           ((string= exp "Set membership inferences (Mascarenhas & Koralus, 2016)") *mascarenhas-&-koralus-2016*)
           ((string= exp "Syllogisms meta-analysis (Khemlani & Johnson-Laird, 2012)") *khemlani-&-johnson-laird-2012*)
           ((string= exp "Temporal inferences (Experiments 1 and 2; Khemlani, Harrison, & Trafton, in preparation)") *temporal-inference-exp1&2-khemlani-et-al-in-prep*)
-          ((string= exp "Temporal inferences (Experiment 3; Khemlani, Harrison, & Trafton, in preparation)") *temporal-inference-exp3-khemlani-et-al-in-prep*)
+          ((string= exp "Durational inferences (Experiment 1; Kelly, Khemlani, & Johnson-Laird, 2020") *durational-reasoning-exp1-kelly-et-al-2020*)
           )))
   (setf (capi:collection-items (problem-list-panel-accessor *mR-interface*)) *experiment-problems*))
 

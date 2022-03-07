@@ -2,33 +2,25 @@
 ; Part 6: Scanning heuristics
 ; ---------------------------------------------------------------------------------
 
-; Section 6.1: Heuristics for scanning model to form initial conclusions
-; Section 6.2: Verbalize intensions: transforms them into words 
-; Section 6.3: Validation and abbreviations [not used by 5.2]
-
 ; ---------------------------------------------------------------------------------
 ; Section 6.1: Heuristics for scanning model to form initial conclusions
 ; --------------------------------------------------------------------------------
 
-#|
-The algorithm 3-4-11
-The intial conclusions are guided by the quantifier in the dominant premise and the figure. 
-i. The dominance of moods is as follows: 
+(defmethod form-initial-conclusion ((model q-model))
+  "The algorithm 3-4-11
+   The intial conclusions are guided by the quantifier in the dominant premise and the figure. 
+   i. The dominance of moods is as follows: 
       some_not_ > no > some > all
-ii.The conclusion depends on the figure of the premises, the mood of the dominant premise,
-   especially the most dominant O mood4
+   ii.The conclusion depends on the figure of the premises, the mood of the dominant premise,
+      especially the most dominant O mood
    1. A-B B-C premises: Use dominant premise to make an A-C conclusion from the model.
-   2. B-A C-B premises: Use dominant premise to make C-A conclusion. For all except O mood, 
+   2. B-A C-B premises: Use dominant premise to make C-A conclusion. 
                         then use dominant quantifier to make A-C conclusion.
    3. A-B C-B premises: If premises in same mood use it to make A-C conclusion,
-                        elseif O use it to make conclusion in its figure,
                         else returns mood & figure of dominant premise and converse
    4. B-A B-C premises: If premises in same mood use it to make A-C conclusion
-                        elseif O premise use it to make conclusion in its figure
                         else returns mood & figure of dominant premise and converse.
-|#
 
-#|
 form-initial-conclusion
    find-footnote - in API
    get-syllogistic figure - in API
@@ -38,14 +30,7 @@ form-initial-conclusion
          same-moods
    check-conclusions
       validate - in BuildModel
-      verbalize-conclusion - see below
-|#
-
-(defmethod form-initial-conclusion ((model q-model))
-  " ok forms initial conclusion guided by intensions of premises, recovered from footnote 
-   of model 
-   (form-initial-conclusion '(A) '(C) '(((B))((C))((A)(B)(C))((A)(B)(C))((A)(B)) (T3))) =>
-     ((SOME A ARE C) (SOME C ARE A)) "
+      verbalize-conclusion - see below"
   (let* ((intensions (footnote model))
          (intension1 (copy-class-instance (first intensions)))
          (intension2 (copy-class-instance (second intensions))))
@@ -70,9 +55,7 @@ form-initial-conclusion
    '(((B)) ((C)) ((A) (B) (C)) ((A) (B) (C)) ((A) (B)) (T3)))
     => ((SOME A ARE C) (SOME C ARE A))"
   (let ((validated-conclusions (mapcan #'(lambda (c)
-                                          ;(format t "~A~%" (abbreviate c))
-                                          (when (validate c (list model)) (list c))) concl-lis)))
- ;  (princ "concl-lis-check-conclusions ")(princ concl-lis) for debugging
+                                           (when (validate c (list model)) (list c))) concl-lis)))
     (when (not validated-conclusions)
        (error 'false-heuristic-conclusion-error :text (format nil "Heuristic conclusion is false: ~A~%~%" (abbreviate (first concl-lis)))))
     (randomize validated-conclusions)))
@@ -100,9 +83,6 @@ form-initial-conclusion
 
 (defmethod figure-1 ((intension1 q-intension) (intension2 q-intension))
   " ok draws conclusion for abbc figure 1
-   (figure-1 (parse '(all a are b))(parse '(some b are c))) =>
-    (((((? 3) (> 2)) (? 2) ((<= CARDINALITY) (> 0)) T NIL) (A) (INCLUDE (A) (C))))
-   
    If dominant premise is intens-1 form conclusion based on it but including
    end-2 as its object
    Else form conclusion based on intens-2 but making end-1 its subject"
@@ -110,19 +90,15 @@ form-initial-conclusion
                           (abbreviate intension1) (abbreviate intension2)))
   (let ((end1 (first (get-syll-end-terms intension1 intension2)))
         (end2 (second (get-syll-end-terms intension1 intension2)))
-        (dom-mood (dominant-mood intension1 intension2))
+        (dominant-intension (dominant-mood intension1 intension2))
         conclusion)
-    (if (equalp dom-mood intension1)
+    (if (equalp dominant-intension intension1)
           (setf conclusion (swap-object intension1 end2 :negate-predicate (is-none intension2)))
       (setf conclusion (swap-subject intension2 end1 :negate-predicate (is-none intension1))))    
     (list conclusion)))
 
 (defmethod figure-2 ((intension1 q-intension) (intension2 q-intension))
   " ok draws conclusion or conclusions for figure 2 b-a c-b 
-   (figure-2 (parse '(all b are a))(parse '(all c are b))) =>
-     (((((? 3) (> 2)) (? 3) ((= CARDINALITY)) T T) (C) (INCLUDE (C) (A))) 
-      ((((? 3) (> 2)) (? 3) ((= CARDINALITY)) T T) (A) (INCLUDE (A) (C))))
-
    Bias towards C-A from figure of intenss especially with most dominant O intens
    Otherwise return two conclusions based on dominant intens: C-A and A-C."
   (trc "System 1" (format nil "Applied figure 2 heuristic to ~A and ~A"
@@ -130,28 +106,23 @@ form-initial-conclusion
   (let ((mood1 (mood intension1))(mood2 (mood intension2))
         (end1 (first (get-syll-end-terms intension1 intension2)))
         (end2 (second (get-syll-end-terms intension1 intension2)))
-        (dom-intens (dominant-mood intension1 intension2))
+        (dominant-intension (dominant-mood intension1 intension2))
         conclusion)
     (cond
      ((equal mood1 'O) (setf conclusion (list (swap-subject intension1 end2))))
      ((equal mood2 'O) (setf conclusion (list (swap-object intension2 end1))))
-     ((equal dom-intens intension1)
+     ((equal dominant-intension intension1) 
       (setf conclusion
             (list (swap-subject intension1 end2)
-                  (swap-object (swap-subject dom-intens end1) end2))))
+                  (swap-object (swap-subject dominant-intension end1) end2))))
      (t
       (setf conclusion
             (list (swap-object intension2 end1)
-                  (swap-subject (swap-object dom-intens end2) end1)))))
+                  (swap-subject (swap-object dominant-intension end2) end1)))))
     conclusion))
-
 
 (defmethod figure-3 ((intension1 q-intension) (intension2 q-intension))
   " ok draws conclusion or conclusions from abcb figure 3 
-      (figure-3 (parse '(all a are b))(parse '(some c are b))) =>
-  (((((? 3) (> 2)) (? 2) ((<= CARDINALITY) (> 0)) T NIL) (C) (INCLUDE (C) (A))) 
-   ((((? 3) (> 2)) (? 2) ((<= CARDINALITY) (> 0)) T NIL) (A) (INCLUDE (A) (C)))) 
-
    If intenss in same mood use it to make A-C conclusion,
    elseif O use it to make conclusion in its figure,
    else returns mood & figure of dominant intens and converse"
@@ -171,7 +142,7 @@ form-initial-conclusion
       (setf conclusion (list (swap-object intension1 end2 :negate-predicate (is-none intension2)))))
      ((or (is-some-not intension2)
           (is-setmem intension2 :n 1))
-      (setf conclusion (list (swap-object intension2 end1 :negate-predicate (is-none intension1)))))
+      (setf conclusion (list (swap-object intension2 end1 :negate-predicate (is-none intension1))))) 
      ((equal dom-intens intension1)
       (setf conclusion
             (list (swap-object intension1 end2)
@@ -199,17 +170,17 @@ form-initial-conclusion
     (cond
      ((equal mood1 mood2)
       (setf conclusion (list (swap-subject intension2 end1)))) ;ok
-     ((equal (mood dom-intens) 'O)
-      (setf conclusion
-            (if (equal dom-intens intension1)
-                (list (swap-subject intension1 end2))
-              (list (swap-subject intension2 end1)))))         ;ok
-     ((and (equal mood1 'I)(equal mood2 'E))
+      ((equal (mood dom-intens) 'O)
+       (setf conclusion
+             (if (equal dom-intens intension1)
+                 (list (swap-subject intension1 end2))
+               (list (swap-subject intension2 end1)))))        ;ok
+#|     ((and (equal mood1 'I)(equal mood2 'E))
       (setf conclusion
             (list (swap-subject intension2 end1))))            ;ok
      ((and (equal mood1 'E)(equal mood2 'I))
       (setf conclusion
-            (list (swap-subject (swap-object intension1 end2) end1)))) ;ok
+            (list (swap-subject (swap-object intension1 end2) end1)))) ;ok |#
      ((equal dom-intens intension2)
       (setf conclusion
             (list (swap-subject intension2 end1)
@@ -241,10 +212,14 @@ form-initial-conclusion
               (setf dominant-intens (is-setmem   intension2 :n 1))
               (setf dominant-intens (is-some-not intension1))
               (setf dominant-intens (is-some-not intension2))
+              (setf dominant-intens (is-most-not intension1))
+              (setf dominant-intens (is-most-not intension2))
               (setf dominant-intens (is-none     intension1))
               (setf dominant-intens (is-none     intension2))
               (setf dominant-intens (is-some     intension1))
-              (setf dominant-intens (is-some     intension2)))
+              (setf dominant-intens (is-some     intension2))
+              (setf dominant-intens (is-most     intension1))
+              (setf dominant-intens (is-most     intension2)))
           dominant-intens))))
 
 (defmethod same-moods ((intension1 q-intension) (intension2 q-intension))
@@ -257,61 +232,3 @@ form-initial-conclusion
     (if (equal (subject intension1) (first (get-syll-end-terms intension1 intension2)))
         intension1     
       intension2))
-
-; ---------------------------------------------------------------------------------
-; Section 6.2: Verbalize intensions: transforms them into words 
-; --------------------------------------------------------------------------------
-
-#| converts intension into sentence
-verbalize-conclusion
-     recover-card, recover-numprop, recover-polarity, negative predicate in API
-     find-subject, find-object in API
-     match-features-lex
-        is-determiner
-        match-features
-           recover-det-features
-           update-boundary
-           numprop-bounds
-              numprop-bound
-    (verbalize-conclusion (parse '(all a are c))) => (all a are c) |#
-
-(defun verbalize-conclusion (intension)
-   "Recovers card numprop pol and whether pred is negative using fns in API
-    Calls match-features-lex to find appropriate determiner in *lexicon*"
-  (let* ((quant (first intension))(card (recover-card quant))
-         (numprop (recover-numprop quant))(pol (recover-polarity-quant quant))
-         (neg-rel (negative-predicate (first (reverse intension))))
-         (subj (find-subject intension))(obj (find-object intension))
-         rel)
-    (if neg-rel (setf rel '(are not))
-      (setf rel '(are)))
-  ;  (princ "quant features ")(princ (list card numprop pol))(terpri) for debuggin
-    (append (match-features-lex card numprop pol) subj rel obj)))
-
-(defun recover-polarity-quant(quant)
-  " recovers polarity of quantifier -- for some reason existing function
-   recover-polarity doesn't seem to work properly
-   (recover-polarity-quant '(((? 3) (> 2)) (? 2) ((<= CARDINALITY) (> 0)) T NIL))"
-  (second (reverse quant)))
-
-(defun is-determiner(lex-entry)
-" checks whether item in *lexicon* is determiner"
-(equal (caadr lex-entry) '(det)))
-
-; ---------------------------------------------------------------------------------
-; Section 6.3: Validation and abbreviations
-; ---------------------------------------------------------------------------------
-        
-(defun print-validations (premises conclusion-1 conclusion-2 models) 
-  "prints results of validate and calls abbreviate "
-  (let* ((premise-1 (first premises))(premise-2 (second premises))
-         (end-1 (first (get-syll-end-terms premise-1 premise-2)))
-         (end-2 (second (get-syll-end-terms premise-1 premise-2)))
-          validate-value-1 validate-value-2)
-    (terpri)(princ (abbreviate conclusion-1))
-    (princ " validate returns ") 
-    (princ (setf validate-value-1 (validate conclusion-1 models)))
-    (cond(conclusion-2 (terpri)(princ (abbreviate conclusion-2))
-            (princ " validate returns ")
-            (princ (setf validate-value-2 (validate conclusion-2 models)))))
-    validate-value-1))

@@ -20,7 +20,7 @@ Section 4.6: Built-in intensions
 ; ---------------------------------------------------------------------------------
 
 (defparameter *grammar*
-  '(; Atomic sentences and connectives  ---------------------------------------
+  '(; Atomic sentences and sentential connectives  -----------------------------
     (S             -> (Var)                               sem-aff-var)
     (S             -> (Neg Var)                           sem-neg-var)
     (S             -> (Punct S Conn S)                    sem-cscs)
@@ -32,7 +32,7 @@ Section 4.6: Built-in intensions
     (S             -> (C-Antec S C-Co S)                  sem-cond)
     (S             -> (It-Pro S-Cop Neg Def-Art Case-N
                               Det-That S)                 sem-neg)
-    ; Monadic sentences  ------------------------------------------------------
+    ; Monadic operators  ------------------------------------------------------
     (S             -> (Quant-NP Pred-VP)                  sem-monadic)
     (S             -> (Name S-Cop Indef-Art Noun)         sem-set-member)
     (S             -> (Name S-Cop Neg Indef-Art Noun)     sem-set-nonmember)
@@ -44,14 +44,14 @@ Section 4.6: Built-in intensions
     (Pred-VP       -> (P-Cop Predet-Either
                              Nouns Conn Nouns)            sem-affirmative-pred-conn)
     (Pred-VP       -> (P-Cop Neg Nouns)                   sem-negative-pred)
-    ; Temporal sentences  -----------------------------------------------------
+    ; Temporal connectives  ----------------------------------------------------
     (S             -> (Var Temporal-VP)                   sem-temporal)
     (S             -> (Var Temporal-PP)                   sem-temporal)
     (Temporal-VP   -> (Temp-Cop Temp-Rel Var)             sem-temporal-relation)
     (Temporal-PP   -> (Temp-Cop Temp-Prep Var)            sem-temporal-preposition)
     (Temporal-PP   -> (Temp-Verb Temp-Prep Var)           sem-temporal-preposition)
     (Temporal-PP   -> (Temp-Verb Temp-Rel Var)            sem-temporal-preposition)
-    ; Spatial sentences and relations  ----------------------------------------
+    ; Spatial relations and prepositions  --------------------------------------
     (S             -> (Var Spatial-VP)                    sem-spatial)
     (Spatial-VP    -> (S-Cop Spatial-PP)                  sem-spatial-vp)
     (Spatial-VP    -> (S-Cop Adv-Directly Spatial-PP)     sem-spatial-adv-vp)
@@ -67,69 +67,76 @@ Section 4.6: Built-in intensions
     (Spatial-PP    -> (In-Prep Indef-Art Diff-Rel
                                Spat-Place-N Spat-Compare
                                Var)                       sem-spatial-different)
-    ; Causal sentences  -------------------------------------------------------
+    ; Causal connectives  -----------------------------------------------------
     (S             -> (S Causal-Verb S)                   sem-causal)
     (S             -> (Punct S Causal-Verb S)             sem-ccausal)
+    ; Epistemic relations  ----------------------------------------------------
+    (S             -> (Var Ep-Verb Det-That S)            sem-epistemic)
     ; Noun phrases (quantificational, temporal) -------------------------------
     (Quant-NP      -> (Det Nouns)                         sem-quant)
     (Quant-NP      -> (Det-Scalar Comp-Than Num Nouns)    sem-scalar-quant)
     (Quant-NP      -> (Adv-Exactly Num Nouns)             sem-numerical-quant)
+    (Quant-NP      -> (Def-Art Det-Multal Of-Prep Nouns)  sem-multal-quant)
 
     ; Verb phrases (predicates, temporal, causal) -----------------------------
 
 
     ; Terminals and particles -------------------------------------------------
-    (Conn           -> and                                 and)
-    (Conn           -> or                                  ori)
-    (Conn           -> ore                                 ore)
-    (Conn-ExDisj    -> or                                  or)
-    (Conn-Nor       -> nor                                 nor)
-    (Else-Adv       -> else                                else)
-    (C-Antec        -> if                                  if)
-    (C-Antec        -> iff                                 iff)
-    (C-Co           -> then                                then)
-    (Neg            -> not                                 not)
-    (Punct          -> comma                               comma)
-    (Prob           -> probability                         probability)
-    (P-Cop          -> are                                 are)
-    (S-Cop          -> is                                  is)
-    (Comp-Than      -> than                                than)
-    (Indef-Art      -> an                                  an)
-    (Indef-Art      -> a                                   a)
-    (Def-Art        -> the                                 the)
-    (Det-That       -> that                                that)
-    (Det-Neither    -> neither                             neither)
-    (Predet-Both    -> both                                both)
-    (Predet-Either  -> either                              either)
-    (It-Pro         -> it                                  it)
-    (Case-N         -> case                                case)
-    (Adv-Directly   -> directly                            directly)
-    (Spat-Horiz-Rel -> right                               +)
-    (Spat-Horiz-Rel -> left                                -)
-    (Spat-Vert-Rel  -> above                               +)
-    (Spat-Vert-Rel  -> below                               -)
-    (Spat-Depth-Rel -> front                               +)
-    (Spat-Vert-Rel  -> behind                              (-))
-    (Spat-BW-Rel    -> between                             between)
-    (Same-Rel       -> same                                same)
-    (Diff-Rel       -> different                           different)
-    (Spat-Place-N   -> place                               place)
-    (Spat-Compare   -> as                                  as)
-    (To-Prep        -> to                                  to)
-    (Of-Prep        -> of                                  of)
-    (On-Prep        -> on                                  on)
-    (In-Prep        -> in                                  in)
-    (Temp-Cop       -> happened                            (t t))
-    (Temp-Verb      -> started                             (t nil))
-    (Temp-Verb      -> ended                               (nil t))
-    (Temp-Prep      -> at                                  =)
-    (Temp-Rel       -> before                              <)
-    (Temp-Rel       -> after                               >)
-    (Temp-Rel       -> while                               include)
-    (Temp-Rel       -> during                              properly-include)
-    (Causal-Verb    -> causes                              causes)
-    (Causal-Verb    -> enables                             enables)
-    (Causal-Verb    -> prevents                            prevents)
+    (Conn           -> and                                and)
+    (Conn           -> or                                 ori)
+    (Conn           -> ore                                ore)
+    (Conn-ExDisj    -> or                                 or)
+    (Conn-Nor       -> nor                                nor)
+    (Else-Adv       -> else                               else)
+    (C-Antec        -> if                                 if)
+    (C-Antec        -> iff                                iff)
+    (C-Co           -> then                               then)
+    (Neg            -> not                                not)
+    (Punct          -> comma                              comma)
+    (Prob           -> probability                        probability)
+    (P-Cop          -> are                                are)
+    (S-Cop          -> is                                 is)
+    (Comp-Than      -> than                               than)
+    (Indef-Art      -> an                                 an)
+    (Indef-Art      -> a                                  a)
+    (Def-Art        -> the                                the)
+    (Det-That       -> that                               that)
+    (Det-Neither    -> neither                            neither)
+    (Predet-Both    -> both                               both)
+    (Predet-Either  -> either                             either)
+    (It-Pro         -> it                                 it)
+    (Case-N         -> case                               case)
+    (Adv-Directly   -> directly                           directly)
+    (Spat-Horiz-Rel -> right                              +)
+    (Spat-Horiz-Rel -> left                               -)
+    (Spat-Vert-Rel  -> above                              +)
+    (Spat-Vert-Rel  -> below                              -)
+    (Spat-Depth-Rel -> front                              +)
+    (Spat-Vert-Rel  -> behind                             (-))
+    (Spat-BW-Rel    -> between                            between)
+    (Same-Rel       -> same                               same)
+    (Diff-Rel       -> different                          different)
+    (Spat-Place-N   -> place                              place)
+    (Spat-Compare   -> as                                 as)
+    (To-Prep        -> to                                 to)
+    (Of-Prep        -> of                                 of)
+    (On-Prep        -> on                                 on)
+    (In-Prep        -> in                                 in)
+    (Temp-Cop       -> happened                           (t t))
+    (Temp-Verb      -> started                            (t nil))
+    (Temp-Verb      -> ended                              (nil t))
+    (Temp-Prep      -> at                                 =)
+    (Temp-Rel       -> before                             <)
+    (Temp-Rel       -> after                              >)
+    (Temp-Rel       -> while                              include)
+    (Temp-Rel       -> during                             properly-include)
+    (Causal-Verb    -> causes                             causes)
+    (Causal-Verb    -> enables                            enables)
+    (Causal-Verb    -> prevents                           prevents)
+    (Ep-Verb        -> knows                              knows)
+    (Ep-Verb        -> thinks                             thinks)
+    (Ep-Verb        -> believes                           believes)
+    (Ep-Verb        -> denies                             denies)
 
     (Det         -> most    (make-instance 'q-intension
                                            :card '((? 4) (>= 2))
@@ -178,7 +185,20 @@ Section 4.6: Built-in intensions
                                            :np   '(? (- N 1))
                                            :bnd  '((< N) (> 0))
                                            :pol  t
-                                           :fn   nil :subj nil :rel nil))))
+                                           :fn   nil :subj nil :rel nil))
+    (Det-Multal -> majority (make-instance 'q-intension
+                                           :card '((? 4) (>= 2))
+                                           :np   '(? 3)
+                                           :bnd  '((<= cardinality) (> (* .5 cardinality)))
+                                           :pol  t
+                                           :fn   t :subj nil :rel nil))
+    (Det-Multal -> minority (make-instance 'q-intension
+                                           :card '((? 4) (>= 2))
+                                           :np   '(? 1)
+                                           :bnd  '((< (* .5 cardinality)) (> 0))
+                                           :pol  t
+                                           :fn   t :subj nil :rel nil))
+))
 
 (defparameter *open-categories* '(Nouns Noun Var Name Num Adj)
   "Categories to consider for unknown words")
@@ -310,6 +330,10 @@ Section 4.6: Built-in intensions
 (defun append1 (items item)
   "Add item to end of list of items"
   (append items (list item)))
+
+(defun p (words)
+  "Abbreviated function for parser"
+  (parse words))
 
 ; ---------------------------------------------------------------------------------
 ; Section 4.3: Compositional semantics
@@ -497,7 +521,7 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
         (setf (second (first (second (fourth quant))))   (eval (second (first (second (fourth quant))))))
         (setf (second (second  (second (fourth quant)))) (eval (second (second (second (fourth quant))))))
         (setf (second (second (sixth quant)))            (eval (second (second (sixth quant)))))
-        (list (eval quant) (list subj)))
+        (list (eval quant) subj))
     (error "Integer expected")))
 
 (defun sem-numerical-quant (quant num subj)
@@ -505,15 +529,19 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
       (progn
         (setf quant (subst num 'n quant))
         (setf (second (first (second (fourth quant))))   (eval (second (first (second (fourth quant))))))
-        (list (eval quant) (list subj)))
+        (list (eval quant) subj))
     (error "Integer expected")))
 
+(defun sem-multal-quant (the multal of subj)
+  (declare (ignore the) (ignore of))
+  (list (eval multal) subj))
+
 (defun sem-quant (quant subj)
-  (list (eval quant) (list subj)))
+  (list (eval quant) subj))
 
 (defun sem-affirmative-pred (cop obj)
   (declare (ignore cop))
-  (list 'include (list obj)))
+  (list 'include obj))
 
 (defun sem-affirmative-pred-conn (cop predet obj1 conn obj2)
   (declare (ignore cop) (ignore predet))
@@ -521,30 +549,30 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
 
 (defun sem-negative-pred (cop neg obj)
   (declare (ignore cop neg))
-  (list 'not-include (list obj)))
+  (list 'not-include obj))
 
 (defun sem-set-member (name cop indef-art noun)
   (declare (ignore cop indef-art))
   (make-instance 'q-intension :card '((= 1)) :np '(= 1) :bnd '((= 1))
-                 :pol t :fn t :subj (list name) :obj (list noun)
+                 :pol t :fn t :subj name :obj noun
                  :rel 'include))
 
 (defun sem-set-member-adj (name cop adj)
   (declare (ignore cop indef-art))
   (make-instance 'q-intension :card '((= 1)) :np '(= 1) :bnd '((= 1))
-                 :pol t :fn t :subj (list name) :obj (list adj)
+                 :pol t :fn t :subj name :obj adj
                  :rel 'include))
 
 (defun sem-set-nonmember (name cop neg indef-art noun)
   (declare (ignore neg cop indef-art))
   (make-instance 'q-intension :card '((= 1)) :np '(= 1) :bnd '((= 1))
-                 :pol t :fn t :subj (list name) :obj (list noun)
+                 :pol t :fn t :subj name :obj noun
                  :rel 'not-include))
 
 (defun sem-set-nonmember-adj (name cop neg adj)
   (declare (ignore neg cop indef-art))
   (make-instance 'q-intension :card '((= 1)) :np '(= 1) :bnd '((= 1))
-                 :pol t :fn t :subj (list name) :obj (list adj)
+                 :pol t :fn t :subj name :obj adj
                  :rel 'not-include))
 
 (defun sem-temporal (subj int)
@@ -576,30 +604,6 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
         (when (first verb) (setf (start-time int) (list preposition obj)))
         (when (second verb) (setf (end-time int) (list preposition obj)))
         int))))
-
-(defun sem-causal (first relation second)
-  (case relation
-    (causes  (make-instance 'c-intension :first-clause first :second-clause second
-                        :first-only  'impossible
-                        :second-only 'possible
-                        :both        'initial
-                        :neither     'possible
-                        :constraint   nil))
-    (enables (make-instance 'c-intension :first-clause first :second-clause second
-                        :first-only  'possible
-                        :second-only 'impossible
-                        :both        'initial
-                        :neither     'possible
-                        :constraint   nil))
-    (prevents (make-instance 'c-intension :first-clause first :second-clause second
-                        :first-only  'initial
-                        :second-only 'possible
-                        :both        'impossible
-                        :neither     'possible
-                        :constraint   nil))))
-
-(defun sem-ccausal (comma first relation second)
-  (sem-causal first relation second))
 
 (defun sem-spatial (subject int)
   (setf (subject int) subject)
@@ -639,6 +643,37 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
 (defun sem-spatial-different (in a different place as obj)
   (make-instance 'sp-intension :obj obj :rel :not-equal :dim nil :temp nil :dist nil))
 
+(defun sem-causal (first relation second)
+  (case relation
+    (causes  (make-instance 'c-intension :first-clause first :second-clause second
+                        :first-only  'impossible
+                        :second-only 'possible
+                        :both        'initial
+                        :neither     'possible
+                        :constraint   nil))
+    (enables (make-instance 'c-intension :first-clause first :second-clause second
+                        :first-only  'possible
+                        :second-only 'impossible
+                        :both        'initial
+                        :neither     'possible
+                        :constraint   nil))
+    (prevents (make-instance 'c-intension :first-clause first :second-clause second
+                        :first-only  'initial
+                        :second-only 'possible
+                        :both        'impossible
+                        :neither     'possible
+                        :constraint   nil))))
+
+(defun sem-ccausal (comma first relation second)
+  (sem-causal first relation second))
+
+(defun sem-epistemic (agent relation that clause)
+  (case relation
+    (knows    (make-instance 'e-intension :agent agent :affirms t   :negates nil :factivity 'factive :clause clause))
+    (thinks   (make-instance 'e-intension :agent agent :affirms t   :negates t   :factivity 'non-factive :clause clause))
+    (believes (make-instance 'e-intension :agent agent :affirms t   :negates t   :factivity 'non-factive :clause clause))
+    (denies   (make-instance 'e-intension :agent agent :affirms nil :negates t   :factivity 'non-factive :clause clause))))
+
 ; ---------------------------------------------------------------------------------
 ; Section 4.4: Memoization and parsing efficiency
 ; ---------------------------------------------------------------------------------
@@ -667,7 +702,7 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
 (memoize 'lexical-rules)
 (memoize 'rules-starting-with)
 (memoize 'parse-words :test 'eq)
-; (memoize 'parse :test 'equal)
+;(memoize 'parse :test 'equal)
 
 (defun use (grammar)
   "Switch to a new grammar"
@@ -1346,126 +1381,150 @@ Current parts of speech include
 ; Section 4.6: Inflectional morphology
 ; ---------------------------------------------------------------------------------
 
-(defvar Aab (parse '(All A are B)))
-(defvar Iab (parse '(Some A are B)))
-(defvar Eab (parse '(No A are B)))
-(defvar Oab (parse '(Some A are not B)))
-(defvar Aba (parse '(All B are A)))
-(defvar Iba (parse '(Some B are A)))
-(defvar Eba (parse '(No B are A)))
-(defvar Oba (parse '(Some B are not A)))
-(defvar Acb (parse '(All C are B)))
-(defvar Icb (parse '(Some C are B)))
-(defvar Ecb (parse '(No C are B)))
-(defvar Ocb (parse '(Some C are not B)))
-(defvar Abc (parse '(All B are C)))
-(defvar Ibc (parse '(Some B are C)))
-(defvar Ebc (parse '(No B are C)))
-(defvar Obc (parse '(Some B are not C)))
+(defvar Aab (p '(All A are B)))
+(defvar Iab (p '(Some A are B)))
+(defvar Eab (p '(No A are B)))
+(defvar Oab (p '(Some A are not B)))
+(defvar Aba (p '(All B are A)))
+(defvar Iba (p '(Some B are A)))
+(defvar Eba (p '(No B are A)))
+(defvar Oba (p '(Some B are not A)))
+(defvar Acb (p '(All C are B)))
+(defvar Icb (p '(Some C are B)))
+(defvar Ecb (p '(No C are B)))
+(defvar Ocb (p '(Some C are not B)))
+(defvar Abc (p '(All B are C)))
+(defvar Ibc (p '(Some B are C)))
+(defvar Ebc (p '(No B are C)))
+(defvar Obc (p '(Some B are not C)))
 
-(defvar Aac (parse '(All A are C)))
-(defvar Iac (parse '(Some A are C)))
-(defvar Eac (parse '(No A are C)))
-(defvar Oac (parse '(Some A are not C)))
-(defvar Aca (parse '(All C are A)))
-(defvar Ica (parse '(Some C are A)))
-(defvar Eca (parse '(No C are A)))
-(defvar Oca (parse '(Some C are not A)))
+(defvar Aac (p '(All A are C)))
+(defvar Iac (p '(Some A are C)))
+(defvar Eac (p '(No A are C)))
+(defvar Oac (p '(Some A are not C)))
+(defvar Aca (p '(All C are A)))
+(defvar Ica (p '(Some C are A)))
+(defvar Eca (p '(No C are A)))
+(defvar Oca (p '(Some C are not A)))
 
-(defvar Mab (parse '(Most A are B)))
-(defvar Ma-b (parse '(Most A are not B)))
-(defvar Mba (parse '(Most B are A)))
-(defvar Mb-a (parse '(Most B are not A)))
-(defvar Mbc (parse '(Most B are C)))
-(defvar Mb-c (parse '(Most B are not C)))
-(defvar Mcb (parse '(Most C are B)))
-(defvar Mc-b (parse '(Most C are not B)))
+(defvar Mab  (p '(Most A are B)))
+(defvar Ma-b (p '(Most A are not B)))
+(defvar Mba  (p '(Most B are A)))
+(defvar Mb-a (p '(Most B are not A)))
+(defvar Mbc  (p '(Most B are C)))
+(defvar Mb-c (p '(Most B are not C)))
+(defvar Mcb  (p '(Most C are B)))
+(defvar Mc-b (p '(Most C are not B)))
 
-(defvar x-is-A (parse '(X is an A)))
-(defvar x-isnot-A (parse '(X is not an A)))
-(defvar x-is-B (parse '(X is a B)))
-(defvar x-isnot-B (parse '(X is not a B)))
+(defvar x-is-A    (p '(X is an A)))
+(defvar x-isnot-A (p '(X is not an A)))
+(defvar x-is-B    (p '(X is a B)))
+(defvar x-isnot-B (p '(X is not a B)))
 
-(defvar aBb (parse '(A happened before B)))
-(defvar aBc2 (parse '(A happened before C)))
-(defvar aBd (parse '(A happened before D)))
-(defvar aBe (parse '(A happened before E)))
-(defvar bBa (parse '(B happened before A)))
-(defvar bBc (parse '(B happened before C)))
-(defvar bBd (parse '(B happened before D)))
-(defvar bBe (parse '(B happened before E)))
-(defvar cBa (parse '(C happened before A)))
-(defvar cBb (parse '(C happened before B)))
-(defvar cBd (parse '(C happened before D)))
-(defvar cBe (parse '(C happened before E)))
-(defvar dBa (parse '(D happened before A)))
-(defvar dBb (parse '(D happened before B)))
-(defvar dBc (parse '(D happened before C)))
-(defvar dBe (parse '(D happened before E)))
-(defvar eBa2 (parse '(E happened before A)))
-(defvar eBb (parse '(E happened before B)))
-(defvar eBc2 (parse '(E happened before C)))
-(defvar eBd (parse '(E happened before D)))
 
-(defvar aAb2 (parse '(A happened after B)))
-(defvar aAc2 (parse '(A happened after C)))
-(defvar aAd (parse '(A happened after D)))
-(defvar aAe (parse '(A happened after E)))
-(defvar bAa (parse '(B happened after A)))
-(defvar bAc (parse '(B happened after C)))
-(defvar bAd (parse '(B happened after D)))
-(defvar bAe (parse '(B happened after E)))
-(defvar cAa (parse '(C happened after A)))
-(defvar cAb (parse '(C happened after B)))
-(defvar cAd (parse '(C happened after D)))
-(defvar cAe (parse '(C happened after E)))
-(defvar dAa (parse '(D happened after A)))
-(defvar dAb (parse '(D happened after B)))
-(defvar dAc (parse '(D happened after C)))
-(defvar dAe (parse '(D happened after E)))
-(defvar eAa (parse '(E happened after A)))
-(defvar eAb2 (parse '(E happened after B)))
-(defvar eAc2 (parse '(E happened after C)))
-(defvar eAd (parse '(E happened after D)))
+(defvar vBw (p '(V happened before W)))
+(defvar vBx (p '(V happened before X)))
+(defvar vBy (p '(V happened before Y)))
+(defvar vBz (p '(V happened before Z)))
+(defvar wBv (p '(W happened before V)))
+(defvar wBx (p '(W happened before X)))
+(defvar wBy (p '(W happened before Y)))
+(defvar wBz (p '(W happened before Z)))
+(defvar xBv (p '(X happened before V)))
+(defvar xBw (p '(X happened before W)))
+(defvar xBy (p '(X happened before Y)))
+(defvar xBz (p '(X happened before Z)))
+(defvar yBv (p '(Y happened before V)))
+(defvar yBx (p '(Y happened before X)))
+(defvar yBw (p '(Y happened before W)))
+(defvar yBz (p '(Y happened before Z)))
+(defvar zBv (p '(Z happened before V)))
+(defvar zBw (p '(Z happened before W)))
+(defvar zBx (p '(Z happened before X)))
+(defvar zBy (p '(Z happened before Y)))
+(defvar vAw (p '(V happened after W)))
+(defvar vAx (p '(V happened after X)))
+(defvar vAy (p '(V happened after Y)))
+(defvar vAz (p '(V happened after Z)))
+(defvar wAv (p '(W happened after V)))
+(defvar wAx (p '(W happened after X)))
+(defvar wAy (p '(W happened after Y)))
+(defvar wAz (p '(W happened after Z)))
+(defvar xAv (p '(X happened after V)))
+(defvar xAw (p '(X happened after W)))
+(defvar xAy (p '(X happened after Y)))
+(defvar xAz (p '(X happened after Z)))
+(defvar yAv (p '(Y happened after V)))
+(defvar yAx (p '(Y happened after X)))
+(defvar yAw (p '(Y happened after W)))
+(defvar yAz (p '(Y happened after Z)))
+(defvar zAv (p '(Z happened after V)))
+(defvar zAw (p '(Z happened after W)))
+(defvar zAx (p '(Z happened after X)))
+(defvar zAy (p '(Z happened after Y)))
+(defvar vDw (p '(V happened during W)))
+(defvar vDx (p '(V happened during X)))
+(defvar vDy (p '(V happened during Y)))
+(defvar vDz (p '(V happened during Z)))
+(defvar wDv (p '(W happened during V)))
+(defvar wDx (p '(W happened during X)))
+(defvar wDy (p '(W happened during Y)))
+(defvar wDz (p '(W happened during Z)))
+(defvar xDv (p '(X happened during V)))
+(defvar xDw (p '(X happened during W)))
+(defvar xDy (p '(X happened during Y)))
+(defvar xDz (p '(X happened during Z)))
+(defvar yDv (p '(Y happened during V)))
+(defvar yDx (p '(Y happened during X)))
+(defvar yDw (p '(Y happened during W)))
+(defvar yDz (p '(Y happened during Z)))
+(defvar zDv (p '(Z happened during V)))
+(defvar zDw (p '(Z happened during W)))
+(defvar zDx (p '(Z happened during X)))
+(defvar zDy (p '(Z happened during Y)))
+(defvar vWw (p '(V happened while W)))
+(defvar vWx (p '(V happened while X)))
+(defvar vWy (p '(V happened while Y)))
+(defvar vWz (p '(V happened while Z)))
+(defvar wWv (p '(W happened while V)))
+(defvar wWx (p '(W happened while X)))
+(defvar wWy (p '(W happened while Y)))
+(defvar wWz (p '(W happened while Z)))
+(defvar xWv (p '(X happened while V)))
+(defvar xWw (p '(X happened while W)))
+(defvar xWy (p '(X happened while Y)))
+(defvar xWz (p '(X happened while Z)))
+(defvar yWv (p '(Y happened while V)))
+(defvar yWx (p '(Y happened while X)))
+(defvar yWw (p '(Y happened while W)))
+(defvar yWz (p '(Y happened while Z)))
+(defvar zWv (p '(Z happened while V)))
+(defvar zWw (p '(Z happened while W)))
+(defvar zWx (p '(Z happened while X)))
+(defvar zWy (p '(Z happened while Y)))
 
-(defvar aDb (parse '(A happened during B)))
-(defvar aDc (parse '(A happened during C)))
-(defvar aDd (parse '(A happened during D)))
-(defvar aDe (parse '(A happened during E)))
-(defvar bDa (parse '(B happened during A)))
-(defvar bDc (parse '(B happened during C)))
-(defvar bDd (parse '(B happened during D)))
-(defvar bDe (parse '(B happened during E)))
-(defvar cDa (parse '(C happened during A)))
-(defvar cDb (parse '(C happened during B)))
-(defvar cDd (parse '(C happened during D)))
-(defvar cDe (parse '(C happened during E)))
-(defvar dDa (parse '(D happened during A)))
-(defvar dDb (parse '(D happened during B)))
-(defvar dDc (parse '(D happened during C)))
-(defvar dDe (parse '(D happened during E)))
-(defvar eDa (parse '(E happened during A)))
-(defvar eDb (parse '(E happened during B)))
-(defvar eDc (parse '(E happened during C)))
-(defvar eDd (parse '(E happened during D)))
+(defvar Maj-ab (p '(The majority of A are B)))
+(defvar Maj-ba (p '(The majority of B are A)))
+(defvar Maj-bc (p '(The majority of B are C)))
+(defvar Maj-cb (p '(The majority of C are B)))
+(defvar Maj-ac (p '(The majority of A are C)))
+(defvar Maj-ca (p '(The majority of C are A)))
+(defvar Maj-a-b (p '(The majority of A are not B)))
+(defvar Maj-b-a (p '(The majority of B are not A)))
+(defvar Maj-b-c (p '(The majority of B are not C)))
+(defvar Maj-c-b (p '(The majority of C are not B)))
+(defvar Maj-a-c (p '(The majority of A are not C)))
+(defvar Maj-c-a (p '(The majority of C are not A)))
 
-(defvar aWb (parse '(A happened while B)))
-(defvar aWc (parse '(A happened while C)))
-(defvar aWd (parse '(A happened while D)))
-(defvar aWe (parse '(A happened while E)))
-(defvar bWa (parse '(B happened while A)))
-(defvar bWc (parse '(B happened while C)))
-(defvar bWd (parse '(B happened while D)))
-(defvar bWe (parse '(B happened while E)))
-(defvar cWa (parse '(C happened while A)))
-(defvar cWb (parse '(C happened while B)))
-(defvar cWd (parse '(C happened while D)))
-(defvar cWe (parse '(C happened while E)))
-(defvar dWa (parse '(D happened while A)))
-(defvar dWb (parse '(D happened while B)))
-(defvar dWc (parse '(D happened while C)))
-(defvar dWe (parse '(D happened while E)))
-(defvar eWa (parse '(E happened while A)))
-(defvar eWb (parse '(E happened while B)))
-(defvar eWc (parse '(E happened while C)))
-(defvar eWd (parse '(E happened while D)))
+(defvar Min-ab (p '(The minority of A are B)))
+(defvar Min-ba (p '(The minority of B are A)))
+(defvar Min-bc (p '(The minority of B are C)))
+(defvar Min-cb (p '(The minority of C are B)))
+(defvar Min-ac (p '(The minority of A are C)))
+(defvar Min-ca (p '(The minority of C are A)))
+(defvar Min-a-b (p '(The minority of A are not B)))
+(defvar Min-b-a (p '(The minority of B are not A)))
+(defvar Min-b-c (p '(The minority of B are not C)))
+(defvar Min-c-b (p '(The minority of C are not B)))
+(defvar Min-a-c (p '(The minority of A are not C)))
+(defvar Min-c-a (p '(The minority of C are not A)))

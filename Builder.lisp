@@ -18,7 +18,7 @@
     (if m (trc system (format nil "Initiated model building of ~A given ~A" (abbreviate intension) m))
       (trc system (format nil "Initiated model building of ~A" (abbreviate intension))))))
 
-(defun build-model (intension &key (m nil) (s2 nil))
+(defun build-model (intension &key (models nil))
  "Decides what to do with intension as function of whether or not its 1st and 2nd arguments already
   occur in models in the modelset. It operates by recovering the first and second arguments from
   the intension, then it calls the following procedures depending on the models:
@@ -27,11 +27,11 @@
    Add-object to existing model(s)
    Combine models
    Start new model"
-   (let* ((m               (mapcar #'copy-class-instance m))
+   (let* ((m               (mapcar #'copy-class-instance models))
           (1st             (first-argument intension))
           (2nd             (second-argument intension))
-          (models-1st      (find-referent-in-modelset 1st m))
-          (models-2nd      (find-referent-in-modelset 2nd m))
+          (models-1st      (find-referent-in-modelset 1st models))
+          (models-2nd      (find-referent-in-modelset 2nd models))
           (models-both     (find-referent-in-modelset 2nd models-1st))
           (models-1st-only (remove-models models-2nd models-1st))
           (models-2nd-only (remove-models models-1st models-2nd)))
@@ -41,24 +41,24 @@
             models-2nd-only) (combine intension models-1st-only models-2nd-only))
       (models-1st-only       (add-second-argument intension models-1st-only))
       (models-2nd-only       (add-first-argument intension models-2nd-only))
-      ((or (null m)
+      ((or (null models)
            (and (not models-1st)
-                (not models-2nd))) (start-model intension m)))))
+                (not models-2nd))) (start-model intension :models models)))))
 
-(defun build-n-print (intension &key (m nil) (s2 nil))
+(defun build-n-print (intension &key (m nil))
   "Builds then prints model"
-  (let ((model (build-model intension :m m :s2 s2)))
+  (let ((model (build-model intension :models m)))
     (if (> (length model) 1)
         (print-models model)
       (print-model (first model)))
     (terpri)(terpri)
     model))
 
-(defun bnp (intension &key (m nil) (s2 nil))
+(defun bnp (intension &key (m nil))
   "Builds then prints model (abbreviation)"
-  (build-n-print intension :m m :s2 s2))
+  (build-n-print intension :m m))
 
-(defun confirm (intension models)
+(defmethod confirm (intension models)
   "Confirms whether the intension of a new premise holds in the set
    of models. The premise's subject and object must already exist in
    the model for this function to be called. If the intension is validated,
@@ -73,23 +73,37 @@
                   (add-footnote m intension))) models))
   models)
 
+(defmethod confirm ((intension s-intension) models)
+  ""
+  (if (< (length models) 2)
+      (list (start-mod intension (first models)))
+    (error "[SSK 2019-11-15]: Too many models to combine")))
+
 (defun add-second-argument (intension models)
-  "Add-object calls start-mod to add an object to each model in modelset.
+  "Add-second-argument calls start-mod to add an object to each model in modelset.
    It assumes that each model in model set contains the subject of the intension"
   (let* (outmodels)
     (dolist (mod models outmodels)
-      (setf outmodels (append outmodels (list (funcall #'start-mod intension (copy-class-instance mod))))))
+       (if (stochastic-enabled?)
+           (setf outmodels (append outmodels (list (funcall #'start-mod-stochastically intension :model (copy-class-instance mod)))))
+         (setf outmodels (append outmodels (list (funcall #'start-mod intension :model (copy-class-instance mod)))))))
     (trc "System 1" (format nil "Added second argument of ~A to model" (abbreviate intension)) :m outmodels)
     outmodels))
 
-(defun start-model (intension &optional (models nil))
+(defun start-model (intension &key (models nil))
   "Calls start-mod to build the model, which is appended to modelset"
-  (let* ((model  (if (stochastic-enabled?)
-                     (start-model-stochastically intension)
-                   (start-mod intension)))
-         (models (append models (list model))))
-    (trc "System 1" (format nil "Started model of ~A" (abbreviate intension)) :m model)
-    models))
+  (trc "System 1" (format nil "Started model of ~A" (abbreviate intension)) :m models)
+  (let* (outmodels)
+    (if (stochastic-enabled?)
+        (if (null models)
+            (setf outmodels (list (start-mod-stochastically intension)))
+          (dolist (mod models outmodels)
+            (setf outmodels (append outmodels (list (funcall #'start-mod-stochastically intension :model (copy-class-instance mod)))))))
+      (if (null models)
+          (setf outmodels (list (start-mod intension)))
+        (dolist (mod models outmodels)
+          (setf outmodels (append outmodels (list (funcall #'start-mod intension :model (copy-class-instance mod))))))))
+    outmodels))
 
 ; ---------------------------------------------------------------------------------
 ; Section 7.3: Combining models
@@ -126,41 +140,53 @@
 
 ; -------------------------- For quantificational models --------------------------
 
-(defmethod generate-all-combinations ((terms list) (intension q-intension))
-  (when (is-setmem intension :n 1) (setf terms (remove-if #'(lambda (x) (equal x (subject intension))) terms)))
-  (if (null terms) (list nil)
-      (append (mapcar #'(lambda (x) (cons (first terms) x)) (generate-all-combinations (rest terms) intension))
-              (mapcar #'(lambda (x) (cons (negate (first terms)) x)) (generate-all-combinations (rest terms) intension)))))
+(defmethod canonical-individuals ((intension q-intension))
+ (let* ((subject (list (subject intension)))
+        (object  (list (object intension))))
+   (cond
+    ((is-all          intension)  `((,subject ,object)))
+    ((is-some         intension)  `((,subject ,object) (,subject)))
+    ((is-none         intension)  `((,subject ,(negate object)) (,(negate subject) ,object)))
+    ((is-some-not     intension)  `((,subject ,(negate object)) (,subject ,object) (,object)))
+    ((or (is-maj      intension)
+         (is-most     intension)) `((,subject ,object) (,subject)))
+    ((or (is-min      intension)
+         (is-most-not intension)) `((,subject ,(negate object)) (,subject ,object)))
+    ((is-setmem   intension :n 1) (if (affirmative-intension intension)
+                                      `((,subject ,object) (,object))
+                                    `((,subject ,(negate object)) (,object)))))))
 
-(defmethod start-model-stochastically ((intension q-intension) &key (attempt *build-attempts*))
-  (let* ((capacity              (generate-size))
-         (subject               (subject intension))
-         (object                (object intension))
-         (full-individuals      (generate-all-combinations (list subject object) intension))
-         (canonical-individuals (cond
-                                 ((is-all      intension)      `((,subject ,object)))
-                                 ((is-some     intension)      `((,subject ,object) (,subject)))
-                                 ((is-none     intension)      `((,subject ,(negate object)) (,(negate subject) ,object)))
-                                 ((is-some-not intension)      `((,subject ,(negate object)) (,subject ,object) (,object)))
-                                 ((is-most     intension)      (if (affirmative-intension intension)
-                                                                   `((,subject ,object) (,subject))
-                                                                 `((,subject ,(negate object)) (,subject ,object))))
-                                 ((is-setmem    intension :n 1) (if (affirmative-intension intension)
-                                                                    `((,subject ,object) (,object))
-                                                                  `((,subject ,(negate object)) (,object))))))
-         sample-individuals individuals model)
+(defmethod start-mod-stochastically ((intension q-intension) &key (model nil) (attempt *build-attempts*))
+  (let* ((capacity           (generate-size))
+         (full-individuals   (all-combinations (list (list (subject intension)) (list (object intension))) intension))
+         (canon-individuals  (canonical-individuals intension))
+         sample-individuals individuals new-model footnote)
+
+    (if (null model)
+        (setf footnote (list intension))
+      (progn
+        (setf canon-individuals (remove-duplicates
+                                 (append canon-individuals
+                                         (individuals model)
+                                         (cartesian-product canon-individuals (individuals model)))))
+        (setf footnote (append (list intension) (footnote model)))))
+
     (loop repeat capacity do
-          (setf sample-individuals (if (build-canonical?) canonical-individuals full-individuals))
+          (setf sample-individuals (if (build-canonical?) canon-individuals full-individuals))
           (push (nth (random (length sample-individuals)) sample-individuals) individuals))
-    (setf model (make-instance 'q-model :indivs individuals :fn (list intension) :capacity capacity))
+    (setf new-model (make-instance 'q-model :indivs individuals :fn footnote :capacity capacity))
     (cond
-     ((and (validate intension (list model))
-           (find-referent-in-model subject model)
-           (find-referent-in-model object model))  model)
-     ((> attempt 0)                                (start-model-stochastically intension :attempt (1- attempt)))
+     ((and (validate-all-conclusions (footnote new-model) (list new-model))
+           (find-referent-in-model (subject intension) new-model)
+           (find-referent-in-model (object intension) new-model))  new-model)
+     ((> attempt 0)                                (rebuild-attempt (reverse (footnote new-model)) :attempt (1- attempt)))
      (t                                            (error "Could not construct model.")))))
 
-(defmethod start-mod ((intension q-intension) &optional mod)
+(defun rebuild-attempt (intensions &key (attempt *build-attempts*))
+  (if (null intensions) nil
+    (start-mod-stochastically (first intensions) :model (rebuild-attempt (rest intensions)) :attempt attempt)))
+
+(defmethod start-mod ((intension q-intension) &key (model nil))
 "if no model, makes cardinal number of arg
  if negative polarity, such as 'no', negates predicate argument, '(B) => (- B)
  if negative polarity, such as 'some not', negates predicate too
@@ -168,9 +194,11 @@
  if numprop less that 1 (it's a proportion) so multiplies it by cardinality to yield a number that is a 
           proportion of cardinality
  adds property in predicate to individuals in model having art in them"
-  (let* ((card (cardinality-value intension)) (numprop (numprop-value intension))
-         (subj (subject intension)) (obj (object intension)) (model mod))
-    (when (null mod) (setf model (make-individuals card subj))) ; inserts card initial individuals
+  (let* ((card    (cardinality-value intension))
+         (numprop (numprop-value intension))
+         (subj    (list (subject intension)))
+         (obj     (list (object intension))))
+    (when (null model) (setf model (make-individuals card subj))) ; inserts card initial individuals
 
     (cond
      ; For set-membership assertions
@@ -184,7 +212,8 @@
         (when (null mod) (setf (individuals model) (append (individuals model) (individuals (make-individuals 2 obj))))))))
 
      ; For assertions with determiner: "most"
-     ((or (is-most intension))
+     ((or (is-most intension)
+          (is-maj intension))
       (cond
        ((negative-intension intension)
         (setf (individuals model)
@@ -192,6 +221,17 @@
         (setf (individuals model)
               (add-new-property subj obj (individuals model) (- card numprop))))
        ((affirmative-intension intension)
+        (setf (individuals model)
+              (add-new-property subj obj (individuals model) (- (get-referent-cardinality subj model) 1))))))
+
+     ((is-min intension)
+      (cond
+       ((affirmative-intension intension)
+        (setf (individuals model)
+              (add-new-property subj (negate-property obj) (individuals model) (- (get-referent-cardinality subj model) 1)))
+        (setf (individuals model)
+              (add-new-property subj obj (individuals model) (- card numprop))))
+       ((negative-intension intension)
         (setf (individuals model)
               (add-new-property subj obj (individuals model) (- (get-referent-cardinality subj model) 1))))))
 
@@ -271,12 +311,12 @@
 
 ; ------------------------------ For temporal models ------------------------------
 
-(defmethod start-model-stochastically ((intension t-intension) &key (attempt *build-attempts*))
+(defmethod start-mod-stochastically ((intension t-intension) &key (model nil) (attempt *build-attempts*))
   (let* ((model (start-mod intension)))
     (setf (capacity model) (generate-size))
     model))
 
-(defmethod start-mod ((intension t-intension) &optional mod)
+(defmethod start-mod ((intension t-intension) &key (model nil))
   "if no model, creates new model with just the subject
    if 'before' intension, inserts object in (subject position + 1)
    if 'after' intension, inserts object in subject position (shifts subject up)
@@ -287,14 +327,14 @@
   (let* ((subj  (subject intension))
          (obj   (object intension))
          (prec  (precedence intension))
-         (model mod) subj-range)
-    (when (null mod) (setf model (make-instance 't-model :moments `(((,subj))) :fn nil)))
+         subj-range)
+    (when (null model) (setf model (make-instance 't-model :moments `(((,subj))) :fn nil)))
 
     (setf subj-range (event-range subj (moments model)))
 
     (if (or (not (stochastic-enabled?)) (not (build-canonical?)))
-        (add-object-at-first-fit intension obj model subj-range)
-      (add-object-at-first-free-fit intension obj model subj-range))
+        (add-object-at-first-free-fit intension obj model subj-range)
+      (add-object-at-first-fit intension obj model subj-range))
 
     (add-footnote model intension)
     model))
@@ -320,7 +360,7 @@
    yields A C B and not C A B."
   (cond
    ((is-before intension)
-    (setf (moments model) (insert-at `((,obj)) (moments model) (1+ (first range)))))
+    (setf (moments model) (insert-at `((,obj)) (moments model) (1+ (second range)))))
    ((is-after intension)
     (setf (moments model) (insert-at `((,obj)) (moments model) (second range))))
    ((is-while intension)
@@ -329,55 +369,14 @@
     (setf (moments model) (insert-at `((,obj END)) (moments model) (1+ (second range))))
     (setf (moments model) (insert-at `((,obj START)) (moments model) (first range))))))
 
-(defun moment-position (moment moments)
-  "Get position of moment in moments (a list of lists of lists)"
-  (position moment moments
-            :test #'(lambda (x y) (member x y :test #'equals))))
-
-(defun punctate-event-p (event moments)
-  "T if event is a punctate event in set of models, NIL otherwise"
-  (let ((range (event-range event moments)))
-    (and (first range)
-         (equal (first range) (second range)))))
-
-(defun event-range (event moments)
-  "Gets range of event as an (X Y) tuple where X describes the
-   beginning of the event and Y describes its end as positions
-   in the list of moments"
-  (let* ((position (moment-position (list event) moments)))
-    (if position
-        (list position position)
-      (list (moment-position (list event 'START) moments)
-            (moment-position (list event 'END) moments)))))
-
-(defun insert-at (item list index &key (append nil))
-  "Inserts item into list (of lists) at position index; if :append is t,
-   then it appends the item to the end of list at position index"
-  (cond
-    ((< index 0)                     (error "Index too small ~A" index))
-    ((and (= index 0)
-          (or (equals append :after)
-              (equals append t)))    (cons (append (copy-list (first list)) item) (rest list)))
-    ((and (= index 0)
-          (equals append :before))   (cons (append item (copy-list (first list))) (rest list)))
-    ((and (= index 0) (not append))  (cons item list))
-    ((endp list)                     (error "Index too big"))
-    (t (cons (first list)            (insert-at item (rest list) (1- index) :append append)))))
-
-(defun remove-from (item list-of-lists)
-  "Removes an item from a list of lists, and deletes nils produced if necessary"
-  (let* ((list-of-lists (mapcar #'(lambda (x) (remove item x :test #'equals)) list-of-lists))
-         (list-of-lists (remove-if #'null list-of-lists)))
-    list-of-lists))
-
 ; ----------------------- For sentential connectives -----------------------
 
-(defmethod start-model-stochastically ((intension s-intension) &key (attempt *build-attempts*))
+(defmethod start-mod-stochastically ((intension s-intension) &key (model nil) (attempt *build-attempts*))
   (let* ((model (start-mod intension)))
     (setf (capacity model) (generate-size))
     model))
 
-(defmethod start-mod ((intension s-intension) &optional mod)
+(defmethod start-mod ((intension s-intension) &key (model nil))
   ""
   (let* ((both        (when (is-initial (both intension))
                         (list (first-clause intension) (second-clause intension))))
@@ -387,7 +386,7 @@
                         (list (second-clause intension))))
          (neither     (when (is-initial (neither intension))
                         (list (negate (first-clause intension)) (negate (second-clause intension)))))
-         1st-or-2nd-only possibilities model)
+         1st-or-2nd-only possibilities)
 
     (when (system2-enabled?)
       (setf
@@ -420,7 +419,7 @@
       (setf model
             (make-instance 's-model :poss possibilities :fn (list intension)))))
 
-    (when mod
+    (when model
       (setf (possibilities model)
             (remove-duplicates (cartesian-product-of-models (list (possibilities mod)
                                                                   (possibilities model)))
@@ -624,18 +623,17 @@
 
 ; ------------------------------ For spatial models ------------------------------
 
-(defmethod start-model-stochastically ((intension sp-intension) &key (attempt *build-attempts*))
+(defmethod start-mod-stochastically ((intension sp-intension) &key (model nil) (attempt *build-attempts*))
   (let* ((model (start-mod intension)))
     (setf (capacity model) (generate-size))
     model))
 
-(defmethod start-mod ((intension sp-intension) &optional mod)
+(defmethod start-mod ((intension sp-intension) &key (model nil))
   "if no model, creates new model with just the subject; immediately sends intension to
    add-object-thing with the object and the subject/"
   (let* ((subj  (subject intension))
-         (obj   (object intension))
-         (model mod))
-    (when (null mod) (setf model (make-instance 'sp-model :things `((,subj)) :dims nil :fn nil)))
+         (obj   (object intension)))
+    (when (null model) (setf model (make-instance 'sp-model :things `((,subj)) :dims nil :fn nil)))
     (add-object-thing intension obj model subj)
     (add-footnote model intension)
     model))
@@ -800,14 +798,20 @@
        A
   -B       C
            C"
-  (mapcar #'(lambda (m) (n-add-subject intension m)) models)
-  (mapcar #'(lambda (m) (add-footnote m intension)) models)
-  (trc "System 1" (format nil "Added subject of ~A to model" (abbreviate intension)) :m models)
-  models)
+  (let* (outmodels)
+    (if (stochastic-enabled?)
+        (dolist (mod models outmodels)
+          (setf outmodels (append outmodels (list (funcall #'start-mod-stochastically intension :model (copy-class-instance mod))))))
+      (progn
+        (mapcar #'(lambda (m) (n-add-subject intension m)) models)
+        (mapcar #'(lambda (m) (add-footnote m intension)) models)
+        (setf outmodels models)))
+    (trc "System 1" (format nil "Added subject of ~A to model" (abbreviate intension)) :m models)
+    outmodels))
 
 (defmethod n-add-subject ((intension q-intension) (model q-model))
-  (let* ((subject (subject intension))
-         (object (object intension))
+  (let* ((subject (list (subject intension)))
+         (object (list (object intension)))
          (cardinality (cardinality-value intension))
          (numprop   (numprop-value intension))
          (relation (relation intension))
@@ -835,7 +839,7 @@
 
 (defmethod add-first-argument ((intension t-intension) models)
   "Add subject (event) to model in which object is present"
-  (mapcar #'(lambda (m) (add-subject-event intension m)) models)
+  (setf models (mapcar #'(lambda (m) (add-subject-event intension m)) models))
   (mapcar #'(lambda (m) (add-footnote m intension)) models)
   (trc "System 1" (format nil "Added subject of ~A to model" (abbreviate intension)) :m models)
   models)
@@ -849,13 +853,17 @@
    NB fn calculates object position as an (x y) tuple where x = start position
    and y = end position; x = y in the event of a punctate event"
   (let* ((subj  (subject intension))
-         (prec  (precedence intension))
-         (obj-range (event-range (object intension) (moments model))))
+         (obj (object intension))
+         (obj-range (event-range obj (moments model))))
+
+    (when (and (is-during intension) (is-punctate obj model))
+      ;; when a new event happens during a punctate event, convert the punctate event to durative
+      (setf model (convert-to-durative obj model))
+      (setf obj-range (event-range obj (moments model))))
 
     (if (or (not (stochastic-enabled?)) (not (build-canonical?)))
         (add-subject-at-first-fit intension subj model obj-range)
       (add-subject-at-first-free-fit intension subj model obj-range))
-
     model))
 
 (defmethod add-subject-at-first-free-fit ((intension t-intension) subj model range)
@@ -871,8 +879,8 @@
    ((is-while intension)
     (setf (moments model) (insert-at `((,subj)) (moments model) (first range) :append t)))
    ((is-during intension)
-    (setf (moments model) (insert-at `((,subj END)) (moments model) (1+ (second range))))
-    (setf (moments model) (insert-at `((,subj START)) (moments model) (first range))))))
+    (setf (moments model) (insert-at `((,subj END)) (moments model) (second range)))
+    (setf (moments model) (insert-at `((,subj START)) (moments model) (1+ (first range)))))))
 
 (defmethod add-subject-at-first-fit ((intension t-intension) subj model range)
   "Nearly identical to add-object-at-first-fit:
@@ -881,14 +889,14 @@
    yields A C B and not C A B."
   (cond
    ((is-before intension)
-    (setf (moments model) (insert-at `((,subj)) (moments model) (second range))))
+    (setf (moments model) (insert-at `((,subj)) (moments model) (first range))))
    ((is-after intension)
     (setf (moments model) (insert-at `((,subj)) (moments model) (1+ (first range)))))
    ((is-while intension)
     (setf (moments model) (insert-at `((,subj)) (moments model) (first range) :append t)))
    ((is-during intension)
-    (setf (moments model) (insert-at `((,subj END)) (moments model) (1+ (second range))))
-    (setf (moments model) (insert-at `((,subj START)) (moments model) (first range))))))
+    (setf (moments model) (insert-at `((,subj END)) (moments model) (second range)))
+    (setf (moments model) (insert-at `((,subj START)) (moments model) (1+ (first range)))))))
 
 (defmethod add-first-argument ((intension sp-intension) models)
   "Add subject (thing) to model in which object is present"
@@ -1146,15 +1154,15 @@
    In this case,
    (validate-cardinality '(A) intension '(((A) (B)) ((A) (B)) ((A) (B)) (T22))) => T
    (validate-cardinality '(A) intension '(((C) (B)) ((C) (B)) ((A) (B)) (T22))) => nil"
-  (let* ((subj (subject intension))
+  (let* ((subj (list (subject intension)))
          (cardinality (get-referent-cardinality subj model))
          (conditions (find-cardinality-condition intension)))
     (evaluate-cardinality-conditions cardinality conditions)))
 
 (defmethod validate-numprop ((intension q-intension) (model q-model)) ; ssk
   "Validates that a given model meets the numprop requirement of the given intension"
-  (let* ((subj                 (subject intension))
-         (obj                  (object intension))
+  (let* ((subj                 (list (subject intension)))
+         (obj                  (list (object intension)))
          (condition            (find-numprop-condition intension))
          (subj&obj-cardinality (if (negative-intension intension)
                                    (get-subj-wo-obj-cardinality subj obj model)
@@ -1165,11 +1173,11 @@
 (defmethod validate-boundaries ((intension q-intension) (model q-model)) ; ssk
   "Validates that a given model meets the boundaries of the given intension, e.g.
    EXAMPLES COMING SOON"
-  (let* ((subj                (subject intension))
-        (obj                  (object intension))
-        (cardinality          (get-referent-cardinality subj model))
-        (conditions           (boundary intension))
-        (subj&obj-cardinality (if (negative-intension intension)
-                                  (get-subj-wo-obj-cardinality subj obj model)
-                                (get-subj&obj-cardinality subj obj model))))
+  (let* ((subj                 (list (subject intension)))
+         (obj                  (list (object intension)))
+         (cardinality          (get-referent-cardinality subj model))
+         (conditions           (boundary intension))
+         (subj&obj-cardinality (if (negative-intension intension)
+                                   (get-subj-wo-obj-cardinality subj obj model)
+                                 (get-subj&obj-cardinality subj obj model))))
     (evaluate-boundary-conditions subj&obj-cardinality cardinality conditions)))

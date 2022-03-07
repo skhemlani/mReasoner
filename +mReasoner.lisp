@@ -10,14 +10,15 @@
 ;          Department of Psychology
 ;          Princeton University
 ; ---------------------------------------------------------------------------------
+;
 ; Distribution statement
-; ---------------------------------------------------------------------------------
+; ----------------------
 ; Approved for public release: distribution unlimited. Redistributions of source and
 ; binary forms, with or without modification, are permitted if redistributions retain
 ; the above distribution statement and the following disclaimer.
-; ---------------------------------------------------------------------------------
+; 
 ; Disclaimer
-; ---------------------------------------------------------------------------------
+; ----------
 ; The software is supplied "as is" without warranty of any kind.
 ;
 ; As the owner of the software, the United States, the United States Department of
@@ -35,15 +36,16 @@
 ; license in this computer software to reproduce, prepare derivative works, to
 ; perform or display any portion of that work, and to permit others to do so for
 ; Government purposes.
+;
 ; ---------------------------------------------------------------------------------
 ; Long-term plan of development:
 ; ---------------------------------------------------------------------------------
-; Version Expressivity                 Inferential tasks
+; Version Expressivity                 Inferential tasks                         
 ; ------- ---------------------------- --------------------------------------------
-;     1.0 Connectives and quantifiers  Inference, possibility, consistency, GUI
-;     1.5 Temporality and causality    Probability, modulation
-;     2.0 Spatial relations            Command-line interoperability
-;     2.5 Deontic and epistemic verbs  Explanations
+;   1.0   Connectives and quantifiers  Inference, possibility, consistency, GUI
+;   2.0   Temporality and causality    Probability, modulation
+;   3.0   Spatial relations            Command-line interoperability
+;   4.0   Deontic and epistemic verbs  Explanations
 ; ---------------------------------------------------------------------------------
 
 (format t "~A[~A]~A~%"
@@ -56,12 +58,13 @@
 ; ---------------------------------------------------------------------------------
 
 (defparameter *system-name* "mReasoner")
-(defparameter *version*     "0.9")
+(defparameter *version*     "2.0")
 
 (defun file-path (file)
   (let (pathname)
     #+lispworks (setf pathname (current-pathname file))
     #+ccl       (setf pathname (merge-pathnames file (or *load-pathname* *loading-file-source-file*)))
+	#+clisp     (setf pathname (merge-pathnames file (or *load-pathname* *loading-file-source-file*)))
     #+sbcl      (setf pathname (merge-pathnames (sb-unix:posix-getcwd/) file))
     pathname))
 
@@ -128,8 +131,8 @@
   "Global variable that controls the combinatoric depth of the exhaustic search
    algorithms defined in Counterexamples.lisp")
 
-(defparameter *stochastic* nil
-  "Parameter that enables or disables stochastic system.")
+(defparameter *stochastic* t
+  "Parameter that enables or disables stochastic mode of the system.")
 
 (defparameter *build-attempts* 1000
   "Parameter that establishes the number of attempts to build a stochastic model
@@ -158,23 +161,34 @@
    every time the system needs to build a token in a model, there will be a 60% chance that the
    system will draw from canonical tokens.")
 
-(defparameter +omega+ 1.0
+(defparameter +omega+ 0.0
   "Parameter that controls whether individuals weaken their initial conclusion after finding a
    counterexample or whether they simply report 'NVC' once a counterexample is found. When
    omega = 1.0, weakening always occurs; when omega = 0.0, individuals always report 'NVC' when
    a counterexample is found. When omega = 0.6, there's a 60% chance that weakening will occur.")
-
-;(defparameter *mailbox* (process-data *standard-output*))
 
 (defun reset-system-parameters ()
   (setf *stochastic* nil)
   (setf +lambda+ 4.0)
   (setf +sigma+ 0.0)
   (setf +epsilon+ 0.0)
-  (setf +omega+ 1.0))
+  (setf +omega+ 0.0))
+
+(defun set-system-parameters (&key lambda sigma epsilon omega)
+  (setf *stochastic* t)
+  (setf +lambda+ lambda)
+  (setf +sigma+ sigma)
+  (setf +epsilon+ epsilon)
+  (setf +omega+ omega))
 
 (defun stochastic-enabled? ()
   *stochastic*)
+
+(defun enable-stochastic-mode ()
+  (setf *stochastic* t))
+
+(defun disable-stochastic-mode ()
+  (setf *stochastic* nil))
 
 (defun generate-size ()
   (let ((size nil)
