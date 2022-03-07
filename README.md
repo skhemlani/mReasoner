@@ -58,3 +58,14 @@ What follows given the two premises above? In particular, what's the relation be
     (#<Q-INTENSION 4020157D53> #<Q-INTENSION 402016F873>)
 
 The system generates two conclusions, which correspond to "Some A are C" and "Some C are A".
+
+### References
+
+* Khemlani, S., & Johnson-Laird, P.N. (2022). Reasoning about properties: A computational theory. Manuscript in press at Psychological Review. [PDF](https://modeltheory.org/papers/2021mReasoner.pdf)
+* Khemlani, S., Byrne, R.M.J., & Johnson-Laird, P.N. (2018). Facts and possibilities: A model-based theory of sentential reasoning. Cognitive Science. [PDF](https://modeltheory.org/papers/2018sentential-reasoning.pdf)
+* Johnson-Laird, P. N., Khemlani, S., & Goodwin, G.P. (2015). Logic, probability, and human reasoning. Trends in Cognitive Sciences, 19, 201-214. [PDF](https://modeltheory.org/papers/2015logic-prob-reasoning.pdf)
+* Khemlani, S., Harrison, A. M., & Trafton, J. G. (2015). Episodes, events, and models. Frontiers in Human Neuroscience, 9, 590, 1-13. [PDF](https://modeltheory.org/papers/2015events-episodes-models.pdf)
+* Khemlani, S., Lotstein, M., & Johnson-Laird, P. N. (2015). Naive probability: Model-based estimates of unique events. Cognitive Science, 39, 1216–1258. [PDF](https://modeltheory.org/papers/2015naive-probability.pdf)
+* Khemlani, S., Lotstein, M., Trafton, J.G., & Johnson-Laird, P. N. (2015). Immediate inferences from quantified assertions. Quarterly Journal of Experimental Psychology, 68, 2073–2096. [PDF](https://modeltheory.org/papers/2015events-episodes-models.pdf)
+* Ragni, M., Khemlani, S., & Johnson-Laird (2014). The evaluation of the consistency of quantified assertions. Memory & Cognition, 42, 53-66. [PDF](https://modeltheory.org/papers/2013consistency-of-quantified.pdf)
+* Khemlani, S., & Johnson-Laird, P. N. (2013). The processes of inference. Argument & Computation, 4, 1-20. [PDF](https://modeltheory.org/papers/ssk/ssk2013procsofinf.pdf)
