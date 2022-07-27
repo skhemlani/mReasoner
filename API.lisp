@@ -1,26 +1,25 @@
 ; ---------------------------------------------------------------------------------
-; Part 1: Application Programming Interface (API) for mReasoner
+; Part 3: Application Programming Interface (API) for mReasoner
 ; ---------------------------------------------------------------------------------
 
-; Section 1.1:  Model manipulation functions
-; Section 1.2:  Intension manipulation functions
-; Section 1.3:  Helper fns for high-level fns
-; Section 1.4:  Low-level model fns
-; Section 1.5:  Property fns
-; Section 1.6:  Quantitative intension and model functions
-; Section 1.7:  Temporal intension and model functions
-; Section 1.8:  Sentential intension and model functions
-; Section 1.9:  Spatial intension and model functions
-; Section 1.10: Causal intension and model functions
-; Section 1.11: Tracer classes and functions
-; Section 1.12: Command-line arguments
-; Section 1.13: JSON utility functions
-; Section 1.14: mReasoner REPL
-; Section 1.15: Deliver standalone executable for Syllogism Challenge
-; Section 1.16: Deliver standalone executable for CMRAS system (CCL)
+; Section 3.1:  Model manipulation functions
+; Section 3.2:  Intension manipulation functions
+; Section 3.3:  Helper fns for high-level fns
+; Section 3.4:  Low-level model fns
+; Section 3.5:  Property fns
+; Section 3.6:  Quantitative intension and model functions
+; Section 3.7:  Temporal intension and model functions
+; Section 3.8:  Sentential intension and model functions
+; Section 3.9:  Spatial intension and model functions
+; Section 3.10: Causal intension and model functions
+; Section 3.11: Tracer classes and functions
+; Section 3.12: Command-line arguments
+; Section 3.13: JSON utility functions
+; Section 3.14: mReasoner REPL
+; Section 3.15: Deliver standalone executable for Syllogism Challenge
 
 ; ---------------------------------------------------------------------------------
-; Section 1.1: Model manipulation functions
+; Section 3.1: Model manipulation functions
 ; ---------------------------------------------------------------------------------
 
 (defun find-referent-in-modelset (referent models) ; pjl
@@ -187,7 +186,7 @@
     (+ diff (length (flatten ind1)) (length (flatten ind2)))))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.2: Intension manipulation functions
+; Section 3.2: Intension manipulation functions
 ; ---------------------------------------------------------------------------------
 
 (defmethod terms ((intension intension))
@@ -227,10 +226,14 @@
    (format nil "~A~A~A" subj rel obj)))
 
 (defmethod abbreviate ((intension sp-intension))
- (let ((rel  (string-downcase (relation intension)))
-       (subj (string-downcase (subject intension)))
-       (obj  (string-downcase (object intension))))
-   (format nil "~A(~A,~A)" rel subj obj)))
+  (let ((rel  (string-downcase (relation intension)))
+        (subj (string-downcase (subject intension)))
+        (obj  (object intension)))
+    (if (is-between intension)
+        (format nil "~A(~A ~A ~A)" rel subj
+                (string-downcase (first obj))
+                (string-downcase (second obj)))
+      (format nil "~A(~A ~A)" rel subj (string-downcase obj)))))
 
 (defmethod abbreviate ((intension s-intension))
   (cond
@@ -315,7 +318,7 @@
     (not (member nil evaluated))))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.3: Helper fns for high level fns
+; Section 3.3: Helper fns for high level fns
 ; ---------------------------------------------------------------------------------
 ; Code written by Max Lotstein (ca. 2011-2012)
 ; ---------------------------------------------------------------------------------
@@ -496,7 +499,7 @@
     (list visited-list sub-paths)))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.4: Low level model functions
+; Section 3.4: Low level model functions
 ; ---------------------------------------------------------------------------------
 
 (defun matchlists (lis1 lis2)
@@ -526,7 +529,7 @@
        (t (match item (rest mod)))))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.5: Property Functions
+; Section 3.5: Property Functions
 ; ---------------------------------------------------------------------------------
 
 (defun property-equal (property-1 property-2)
@@ -545,7 +548,7 @@
    (equal (car property) '-)))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.6: Quantitative intension and model functions
+; Section 3.6: Quantitative intension and model functions
 ; ---------------------------------------------------------------------------------
 
 (defmethod find-referent-in-model (referent (model q-model))
@@ -776,7 +779,7 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
      (t (error "Assertion cannot be intrepreted"))))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.7: Temporal intension and model functions
+; Section 3.7: Temporal intension and model functions
 ; ---------------------------------------------------------------------------------
 
 (defmethod find-referent-in-model (referent (model t-model))
@@ -836,26 +839,6 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
       (setf (moments new-model) (insert-at `((,event))       (moments new-model) start-pos))
       new-model)))  
 
-(defun insert-at (item list index &key (append nil))
-  "Inserts item into list (of lists) at position index; if :append is t,
-   then it appends the item to the end of list at position index"
-  (cond
-    ((< index 0)                     (append item (copy-list list)))
-    ((and (= index 0)
-          (or (equals append :after)
-              (equals append t)))    (cons (append (copy-list (first list)) item) (rest list)))
-    ((and (= index 0)
-          (equals append :before))   (cons (append item (copy-list (first list))) (rest list)))
-    ((and (= index 0) (not append))  (cons item list))
-    ((endp list)                     (list item))
-    (t (cons (first list)            (insert-at item (rest list) (1- index) :append append)))))
-
-(defun remove-from (item list-of-lists)
-  "Removes an item from a list of lists, and deletes nils produced if necessary"
-  (let* ((list-of-lists (mapcar #'(lambda (x) (remove item x :test #'equals)) list-of-lists))
-         (list-of-lists (remove-if #'null list-of-lists)))
-    list-of-lists))
-
 (defmethod is-before ((intension t-intension))
   "If intension is 'before' relation, rtn it, else nil"
   (when (equal (first (precedence intension)) '<)
@@ -884,10 +867,10 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
    ((is-after intension) 'after)
    ((is-while intension) 'while)
    ((is-during intension) 'during)
-   (t (error "Assertion cannot be intrepreted"))))
+   (t (error "Assertion cannot be interpreted"))))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.8: Sentential intension and model functions
+; Section 3.8: Sentential intension and model functions
 ; ---------------------------------------------------------------------------------
 
 (defmethod find-referent-in-model ((referent s-intension) (model s-model))
@@ -1040,7 +1023,7 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
     'possible)))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.9: Spatial intension and model functions
+; Section 3.9: Spatial intension and model functions
 ; ---------------------------------------------------------------------------------
 
 (defmethod find-referent-in-model (referent (model sp-model))
@@ -1125,12 +1108,126 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
    ((is-below intension)     'below)
    ((is-front intension)     'front)
    ((is-behind intension)    'behind)
+   ((is-between intension)   'between)
    ((is-same intension)      'same)
    ((is-different intension) 'different)
-   (t (error "Assertion cannot be intrepreted"))))
+   (t (error "Assertion cannot be interpreted"))))
+
+(defmethod find-and-replace-all (old new (model sp-model))
+  "Searches for an entity in spatial model and replaces it with new entity"
+  (if (null old) model
+    (let ((new-model (copy-class-instance model)))
+      (setf (entities new-model) (sp-drop-empty-cells
+                                  (sp-find-and-replace old new (entities new-model))))
+      new-model)))
+
+(defun set-thing-at-position (thing entities column row &optional thing-to-swap-out)
+  "Sets a given thing right in place at a position within the (2D) model;
+   If nothing is in that spot, creates a space and adds the thing;
+   If something is already in that position, it overwrites it;
+   If multiple things are in that position, it either adds to the list or,
+      if thing-to-swap-out is provided, it attempts to swap it out.
+   Returns original set of entities in every other case."
+  (let ((ents (copy-tree entities)))
+    (dotimes (c (length ents))
+      (dotimes (r (length (first ents)))
+        (when (and (= column c) (= row r))
+          (let ((target (nth r (nth c ents))))
+            (cond
+             ((symbolp target)
+              (setf (nth r (nth c ents)) thing))
+             ((null target)
+              (setf (nth r (nth c ents)) (list thing)))
+             ((listp target)
+              (if thing-to-swap-out
+                  (setf (nth r (nth c ents)) (substitute thing thing-to-swap-out target :count 1))
+                (setf (nth r (nth c ents)) (append (list thing) target)))))))))
+  ents))
+
+(defun sp-find-and-replace (old new entities)
+  "Recursive helper fn for find-and-replace, operates on entities, not models.
+   Algorithm:
+   If entities = null, return nil
+   If the first element of entities is a list, it means that it's a 2D spatial relation...
+      ...So head recurse sp-find-and-replace through all elements of list
+   Else if first element of entities matches old,
+      Replace with new and recurse
+   Else recurse through rest of list"
+  (cond
+   ((null entities) nil)
+   ((listp entities)
+    (if (listp (first entities))
+        (append (list (sp-find-and-replace old new (first entities))) (sp-find-and-replace old new (rest entities)))
+      (if (equals (first entities) old)
+          (if (null new)
+              (list (sp-find-and-replace old new (rest entities)))
+            (append (list new) (sp-find-and-replace old new (rest entities))))
+        (append (list (first entities)) (sp-find-and-replace old new (rest entities))))))))
+
+(defun sp-drop-empty-cells (entities)
+  "Clean up grid when cells are empty"
+  (cond
+   ((null entities) nil)
+   ((null (flatten (first entities))) 
+    (if (rest entities)
+        (sp-drop-empty-cells (rest entities))
+      nil))
+   (t (append (list (first entities)) (sp-drop-empty-cells (rest entities))))))
+
+(defmethod duplicate-entities ((model sp-model) &optional things)
+  "Checks to see if there are duplicate entities in model; if things provided,
+   then it checks to see if the duplicate entities in the model are the same as in things."
+  (let* ((entities (flatten (entities model)))
+         (counts   (mapcar #'(lambda (x) (count x entities)) entities))
+         duplicates)
+    (dotimes (i (length entities))
+      (when (> (nth i counts) 1) (push (nth i entities) duplicates)))
+    (if things
+        (intersection (remove-duplicates duplicates :test #'equals) things)
+      (remove-duplicates duplicates :test #'equals))))
+
+(defmethod build-dummy-sp-models ((duplicates list) (model sp-model))
+  (let* ((dup-names-and-pos   (mapcar #'(lambda (x) (list x (thing-duplicate-positions x (entities model)))) duplicates))
+         (dup-names-and-pos   (sort dup-names-and-pos #'(lambda (x y) (< (length (second x)) (length (second y))))))
+         (dummy-names         (mapcar #'(lambda (x) (read-from-string (format nil "~A_dummy" x))) duplicates))
+         (dummy-entities-base (copy-tree (entities model)))
+         i dummy-entities-l1 dummy-entities-l2)
+    (dotimes (i (length duplicates))
+      (setf dummy-entities-base (sp-find-and-replace (nth i duplicates) (nth i dummy-names) dummy-entities-base)))
+    
+    (push dummy-entities-base dummy-entities-l1)
+
+    (setf i 0)
+    (dolist (dup dup-names-and-pos)
+      (dolist (pos (second dup))
+        (dolist (e dummy-entities-l1)
+          (push (set-thing-at-position (first dup) e (first pos) (second pos) (nth i dummy-names))
+                dummy-entities-l2)))
+      (incf i)
+      (setf dummy-entities-l1 (copy-tree dummy-entities-l2))
+      (setf dummy-entities-l2 nil))
+    
+    (mapcar #'(lambda (x)
+                (make-instance 'sp-model :things x :fn nil :dims '((:X :LEFT-RIGHT) (:Y :BELOW-ABOVE))))
+            dummy-entities-l1)))
+
+(defun resolve-dummy-sp-models (duplicates entities)
+  (let* ((dummy-names         (mapcar #'(lambda (x) (read-from-string (format nil "~A_dummy" x))) duplicates))
+         (no-more-dummies (copy-tree entities)))
+    (dotimes (i (length duplicates))
+      (setf no-more-dummies (sp-find-and-replace (nth i dummy-names) (nth i duplicates) no-more-dummies)))
+    no-more-dummies))
+
+(defun thing-duplicate-positions (thing entities)
+  (let (pos positions)
+    (dotimes (i (length entities))
+      (setf pos (thing-position thing (nth i entities)))
+      (when pos
+        (push (list i pos) positions)))
+    positions))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.10: Causal intension and model functions
+; Section 3.10: Causal intension and model functions
 ; ---------------------------------------------------------------------------------
 
 (defmethod is-cause ((intension c-intension))
@@ -1155,7 +1252,7 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
     intension))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.11: Tracer classe and functions
+; Section 3.11: Tracer classes and functions
 ; ---------------------------------------------------------------------------------
 
 (defclass tracer ()
@@ -1255,7 +1352,7 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
       (trc "" line))))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.12: Command-line arguments
+; Section 3.12: Command-line arguments
 ; ---------------------------------------------------------------------------------
 
 (defun get-command-line-arguments ()
@@ -1281,7 +1378,7 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
    (when argument (if (> (length argument ) 1) (second argument) argument))))
 
 ; ---------------------------------------------------------------------------------
-; Section 1.13: JSON utility functions
+; Section 3.13: JSON utility functions
 ; ---------------------------------------------------------------------------------
 
 (defun read-from-json (input)
@@ -1299,8 +1396,53 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
   (with-open-file (out output :direction :output :if-exists :supersede)
     (format out (jsown:to-json json))))
 
+(defmethod to-json-object (instance)
+  (let* ((class       (class-of instance))
+         (slots       (class-slots class))
+         json)
+    (loop for slot in slots do
+          (let ((slot-name (symbol-name (slot-definition-name slot)))
+                (slot-val (slot-value instance (slot-definition-name slot))))
+            #|(format t "~A ~A~%" slot-name slot-val)|#
+            (cond
+             ((or (equal t slot-val) (null slot-val) (numberp slot-val) (stringp slot-val))
+              (setf json (append json (list (cons slot-name (jsown:to-json slot-val))))))
+             ((symbolp slot-val)
+              (setf json (append json (list (cons slot-name (symbol-name slot-val))))))
+             ((or (listp slot-val) (typep slot-val 'intension) (typep slot-val 'model))
+              (setf json (append json (list (cons slot-name (to-json-object slot-val))))))
+             )))
+    (setf json (append (list :obj (cons "CLASS" (format nil "~A" (type-of instance))))
+                       json))
+    json))
+
+(defmethod to-json-object ((list list))
+  (mapcar #'to-json-object list))
+
+(defmethod to-json-object ((number number))
+  (jsown:to-json number))
+
+(defmethod to-json-object ((ratio ratio))
+  (jsown:to-json ratio))
+
+(defmethod to-json-object ((float float))
+  (jsown:to-json float))
+
+(defmethod to-json-object ((string string))
+  (jsown:to-json string))
+
+(defmethod to-json-object ((symbol symbol))
+  (symbol-name symbol))
+
+(defun export-as-json (object pathname)
+  (with-open-file (output pathname
+                          :direction :output
+                          :if-exists :supersede
+                          :if-does-not-exist :create)
+    (format output (jsown:to-json* (to-json-object object)))))
+
 ; ---------------------------------------------------------------------------------
-; Section 1.14: mReasoner REPL
+; Section 3.14: mReasoner REPL
 ; ---------------------------------------------------------------------------------
 
 (defmacro handling-errors (&body body)
@@ -1331,8 +1473,10 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
      (setf *** **   ** *   * (first /))
      (format t "~& --> ~{~S~^ ;~%     ~}~%" /))))
 
+#|
+
 ; ---------------------------------------------------------------------------------
-; Section 1.15: Deliver standalone executable for Syllogism Challenge
+; Section 3.15: Deliver standalone executable for Syllogism Challenge
 ; ---------------------------------------------------------------------------------
 
 (defun print-syllogism-challenge-header ()
@@ -1411,236 +1555,4 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
             (print-syllogism-challenge-header)
             (mreasoner-repl))))
 
-; ---------------------------------------------------------------------------------
-; Section 1.16: Deliver standalone executable for CMRAS system (CCL)
-; ---------------------------------------------------------------------------------
-
-(defun print-cmras-header ()
-  (format t "---------------------------------------------------------------~%~
-	     mReasoner version ~A (~A)                                      ~%~
-             CMRAS system for spatial reasoning                             ~%~
-	     Copyright (C) 2018 by S. Khemlani and P.N. Johnson-Laird       ~%~
-                                                                            ~%~
-             This software is licensed under a Creative Commons Attribution-~%~
-             NonCommercial-ShareAlike 4.0 International License. For more   ~%~
-             information on this license, please visit:                     ~%~
-                                                                            ~%~
-                    http://creativecommons.org/licenses/by-nc-sa/4.0/       ~%~
-             ---------------------------------------------------------------~%"
-                *version* "2018-10-05"))
-
-(defmethod to-json-object (instance)
-  (let* ((class       (class-of instance))
-         (slots       (class-slots class))
-         json)
-    (loop for slot in slots do
-          (let ((slot-name (symbol-name (slot-definition-name slot)))
-                (slot-val (slot-value instance (slot-definition-name slot))))
-            #|(format t "~A ~A~%" slot-name slot-val)|#
-            (cond
-             ((or (equal t slot-val) (null slot-val) (numberp slot-val) (stringp slot-val))
-              (setf json (append json (list (cons slot-name (jsown:to-json slot-val))))))
-             ((symbolp slot-val)
-              (setf json (append json (list (cons slot-name (symbol-name slot-val))))))
-             ((or (listp slot-val) (typep slot-val 'intension) (typep slot-val 'model))
-              (setf json (append json (list (cons slot-name (to-json-object slot-val))))))
-             )))
-    (setf json (append (list :obj (cons "CLASS" (format nil "~A" (type-of instance))))
-                       json))
-    json))
-
-(defmethod to-json-object ((list list))
-  (mapcar #'to-json-object list))
-
-(defmethod to-json-object ((number number))
-  (jsown:to-json number))
-
-(defmethod to-json-object ((ratio ratio))
-  (jsown:to-json ratio))
-
-(defmethod to-json-object ((float float))
-  (jsown:to-json float))
-
-(defmethod to-json-object ((string string))
-  (jsown:to-json string))
-
-(defmethod to-json-object ((symbol symbol))
-  (symbol-name symbol))
-
-(defun export-as-json (object pathname)
-  (with-open-file (output pathname
-                          :direction :output
-                          :if-exists :supersede
-                          :if-does-not-exist :create)
-    (format output (jsown:to-json* (to-json-object object)))))
-
-(defun get-json-premises (json-object)
-  (let ((obj (rest json-object)))
-    (mapcar #'rest (rest (nth (position "premises" obj :test #'equals :key #'first) obj)))))
-
-(defun parse-premise-to-intension (json-premise)
-  (let* ((obj1 (read-from-string (rest (assoc "firstObject" json-premise :test 'equal))))
-         (rel  (convert-to-relation (rest (assoc "relation" json-premise :test 'equal))))
-         (obj2 (read-from-string (rest (assoc "secondObject" json-premise :test 'equal)))))
-    (parse (flatten `(,obj1 ,rel ,obj2)))))
-
-(defun parse-premises-to-intensions (json-premises)
-  (mapcar #'parse-premise-to-intension json-premises))
-
-(defun parse-observation-to-model (json-observation)
-(let* ((obj    (rest json-observation))
-       (things (rest (nth (position "observations" obj :test #'equals :key #'first) obj)))
-       (things (mapcar #'(lambda (x)
-                           (mapcar #'(lambda (y)
-                                       (cond
-                                        ((stringp y)
-                                         (list (read-from-string y)))
-                                        ((listp y)
-                                         (mapcar #'read-from-string y)))) x)) things))
-       (things (mapcar #'(lambda (x) (substitute nil '(-) x :test #'equals)) things))
-       (things (remove-if #'(lambda (x) (every #'null x)) things))
-       (things (transpose-list (reverse things)))
-       (things (remove-if #'(lambda (x) (every #'null x)) things)))
-  (make-instance 'sp-model :things things :fn nil :dims '((:X :LEFT-RIGHT) (:Y :BELOW-ABOVE)))))
-	
-(defun convert-to-relation (relation)
-  (cond
-   ((string= relation "leftOf")    '(is to the left of))
-   ((string= relation "rightOf")   '(is to the right of))
-   ((string= relation "behind")    '(is behind))
-   ((string= relation "inFrontOf") '(is in front of))
-   ((string= relation "above")     '(is above))
-   ((string= relation "below")     '(is below))))
-
-(defun test-proximal-1d-relations (model object1 object2)
-  (let* ((left    (parse `(,object1 is directly to the left of ,object2)))
-         (right   (parse `(,object1 is directly to the right of ,object2)))
-         (above   (parse `(,object1 is directly above ,object2)))
-         (below   (parse `(,object1 is directly below ,object2)))
-         (front   (parse `(,object1 is directly in front of ,object2)))
-         (behind  (parse `(,object1 is directly behind ,object2)))
-         conclusions-list)
-    (mapcar #'(lambda (x) (when (validate x (list model)) (push x conclusions-list)))
-            (list left right above below front behind))
-    conclusions-list))
-
-(defun test-1d-relations (model object1 object2)
-  (let* ((same    (parse `(,object1 is in the same place as ,object2)))
-         (left    (parse `(,object1 is to the left of ,object2)))
-         (right   (parse `(,object1 is to the right of ,object2)))
-         (above   (parse `(,object1 is above ,object2)))
-         (below   (parse `(,object1 is below ,object2)))
-         (front   (parse `(,object1 is in front of ,object2)))
-         (behind  (parse `(,object1 is behind ,object2)))
-         conclusions-list)
-    (mapcar #'(lambda (x) (when (validate x (list model)) (push x conclusions-list)))
-            (list same left right above below front behind))
-    conclusions-list))
-
-(defun find-all-relations (model)
-  (let* ((things       (flatten (things model)))
-         (combinations (combinations-with-replacement things 2))
-         (combinations (remove-if #'(lambda (x) (equals (first x) (second x))) combinations))
-         (relations    (mapcar #'(lambda (x) (funcall #'test-1d-relations model (first x) (second x))) combinations))
-         (relations    (flatten relations)))
-    relations))
-
-(defun pre-filter-relations (relations)
-  (let ((same-relations (remove-if-not #'is-same relations)))
-    (dolist (same-rel same-relations)
-      (dolist (rel (mapcar #'copy-class-instance relations))
-        (when (equals (first-argument rel) (first-argument same-rel))
-          (let* ((rel2 (copy-class-instance rel)))
-            (setf (first-argument rel2) (second-argument same-rel))
-            (when (member rel2 relations :test #'equals)
-              (setf relations (remove-if #'(lambda (x) (equals x rel2)) relations))))))))
-  relations)
-
-(defmethod to-english ((intension sp-intension))
-  (case (relation intension)
-    (same   (format nil "~A is in the same place as ~A" (first-argument intension) (second-argument intension)))
-    (left   (format nil "~A is to the left of ~A"       (first-argument intension) (second-argument intension)))
-    (right  (format nil "~A is to the right of ~A"      (first-argument intension) (second-argument intension)))
-    (above  (format nil "~A is above ~A"                (first-argument intension) (second-argument intension)))
-    (below  (format nil "~A is below ~A"                (first-argument intension) (second-argument intension)))
-    (front  (format nil "~A is in front of ~A"          (first-argument intension) (second-argument intension)))
-    (behind (format nil "~A is behind ~A"               (first-argument intension) (second-argument intension)))
-    (otherwise (error "Can't identify relation."))))
-
-(defun process-task (json model output)
-  (let* ((type (if (footnote model) :premises :observations))
-         (obj  (rest json))
-         (task (position "task" obj :test #'equals :key #'first))
-         (task (when task (read-from-string (rest (nth task obj)))))
-         (args (position "arguments" obj :test #'equals :key #'first))
-         (args (when args (rest (nth args obj))))
-         description validation validation-output)
-    (case type
-      (:premises     nil)
-      (:observations (when (not task) (setf task 'describe))))
-    (case task
-      (describe
-       (format t "")
-       (setf description
-             (format nil "~{~#[None~;~a~;~a and ~a~:;~@{~a~#[~;, and ~:;,~%~]~}~]~:}"
-                     (mapcar #'(lambda (x) (to-english x)) (pre-filter-relations (find-all-relations model)))))
-       (format t "Description~%-----------~%~A.~%~%" description)
-       (setf (description output) description))
-      (validate
-       (case type
-         (:premises     nil)
-         (:observations
-          (format t "~45@<Queried relation~>~15<Holds in model~>~%~
-                     ------------------------------------------------------------~%")
-          (dolist (relation args)
-            (handler-case
-                (setf validation-output (if (validate (parse relation) (list model)) "[YES]" " [NO]"))
-              (parser-error () (setf validation-output "[ERROR]")))
-            (format t "~45@<~A.~>~15<~A~>~%" relation validation-output)
-            (push (list relation validation-output) validation))
-          (format t "~%")
-          (setf (validation output) (reverse validation))))))
-    output))
-
-(defun process-premises-or-observations (json &key (print-model t))
-  (let ((output (make-instance 'json-output))
-        (model-string (make-array '(0) :element-type 'base-char
-                                  :fill-pointer 0 :adjustable t))
-        model)
-    (handler-case
-        (if (equals (first json) :obj)
-            (progn
-              (cond
-               ((some #'(lambda (x) (equals "premises" x)) (mapcar #'first (rest json)))
-                (parse-premises-to-intensions json)
-                (setf model (first (interpret (parse-premises-to-intensions (get-json-premises json))))))
-               ((some #'(lambda (x) (equals "observations" x)) (mapcar #'first (rest json)))
-                (setf model (parse-observation-to-model json))))
-              (when print-model (print-model model) (format t "~%"))
-              (setf (model output) model)
-              (with-output-to-string (s model-string)
-                (print-model model :output s))
-              (setf (model-string output) (split-sequence (format nil "~%") model-string))
-              (process-task json model output))
-          (progn
-            (format t "Error: improperly formatted JSON file.~%")
-            (setf (error-log output) "Improperly formatted JSON file.")))
-      (consistency-error ()
-        (format t "Inconsistent relations; unable to build model.~%")
-        (setf (error-log output) "Inconsistent relations; unable to build model.")))))
-
-(defun process-json-file (input-file output-file)
-  (let* ((input-json (jsown:parse (read-file-to-string input-file)))
-         (output-json (process-premises-or-observations input-json)))
-    (if (and output-file output-json)
-        (write-to-json (to-json-object output-json) output-file))))
-
-(defun process-input (&key (input-file nil) (output-file nil))
-  (initialize-tracer)
-  (let* ((input-file  (if input-file input-file (find-argument "--input")))
-         (output-file (if output-file output-file (find-argument "--output"))))
-    (if input-file
-        (process-json-file input-file output-file)
-      (progn
-        (print-cmras-header)
-        (mreasoner-repl)))))
+|#

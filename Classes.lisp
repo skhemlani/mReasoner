@@ -1,19 +1,18 @@
 ; ---------------------------------------------------------------------------------
-; Part 3: Classes
+; Part 1: Classes
 ; ---------------------------------------------------------------------------------
 ; 
 ; Class definitions for models and intensions
 ; 
-; Section 3.1: General class copy functions
-; Section 3.2: Classes for conditions
-; Section 3.3: Classes for intensions
-; Section 3.4: Classes for models
-; Section 3.5: Class for tracer output
-; Section 3.6: Class for JSON output
+; Section 1.1: General class copy functions
+; Section 1.2: Classes for conditions
+; Section 1.3: Classes for intensions
+; Section 1.4: Classes for models
+; Section 1.5: Class for JSON output
 ; ---------------------------------------------------------------------------------
 
 ; ---------------------------------------------------------------------------------
-; Section 3.1: General class copy functions
+; Section 1.1: General class copy functions
 ; ---------------------------------------------------------------------------------
 
 (defun copy-class-instance (instance)
@@ -55,7 +54,7 @@
     new-instance-list))
 
 ; ---------------------------------------------------------------------------------
-; Section 3.2: Classes for conditions
+; Section 1.2: Classes for conditions
 ; ---------------------------------------------------------------------------------
 
 (define-condition parser-error (error)
@@ -68,7 +67,7 @@
   ((text :initarg :text :reader text)))
 
 ; ---------------------------------------------------------------------------------
-; Section 3.3: Classes for intensions
+; Section 1.3: Classes for intensions
 ; ---------------------------------------------------------------------------------
 
 (defclass intension ()
@@ -138,7 +137,7 @@
   (:documentation "Intension for epistemic verbs"))
 
 ; ---------------------------------------------------------------------------------
-; Section 3.4: Classes for models
+; Section 1.4: Classes for models
 ; ---------------------------------------------------------------------------------
 
 (defclass model ()
@@ -173,7 +172,7 @@
 (defgeneric equals (entity-1 entity-2))
 
 ; ---------------------------------------------------------------------------------
-; Section 3.6: Class for JSON output
+; Section 1.5: Class for JSON output
 ; ---------------------------------------------------------------------------------
 
 (defclass json-output ()

@@ -10,7 +10,7 @@
 #+lispworks (in-package "CL-USER")
 #+lispworks (load-all-patches)
 #+lispworks (load (current-pathname "+mReasoner.lisp" nil))
-#+ccl (load "~/Documents/MMR Lab/Models/Unified/Code/+mReasoner.lisp")
+#+ccl (load "~/Repository/Models/mReasoner/Code/+mReasoner.lisp")
 
 ; ---------------------------------------------------------------------------------
 ; Section 1: Deliver Mac app with GUI (LispWorks)

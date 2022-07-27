@@ -32,6 +32,7 @@ Section 4.6: Built-in intensions
     (S             -> (C-Antec S C-Co S)                  sem-cond)
     (S             -> (It-Pro S-Cop Neg Def-Art Case-N
                               Det-That S)                 sem-neg)
+
     ; Monadic operators  ------------------------------------------------------
     (S             -> (Quant-NP Pred-VP)                  sem-monadic)
     (S             -> (Name S-Cop Indef-Art Noun)         sem-set-member)
@@ -44,6 +45,7 @@ Section 4.6: Built-in intensions
     (Pred-VP       -> (P-Cop Predet-Either
                              Nouns Conn Nouns)            sem-affirmative-pred-conn)
     (Pred-VP       -> (P-Cop Neg Nouns)                   sem-negative-pred)
+
     ; Temporal connectives  ----------------------------------------------------
     (S             -> (Var Temporal-VP)                   sem-temporal)
     (S             -> (Var Temporal-PP)                   sem-temporal)
@@ -51,35 +53,50 @@ Section 4.6: Built-in intensions
     (Temporal-PP   -> (Temp-Cop Temp-Prep Var)            sem-temporal-preposition)
     (Temporal-PP   -> (Temp-Verb Temp-Prep Var)           sem-temporal-preposition)
     (Temporal-PP   -> (Temp-Verb Temp-Rel Var)            sem-temporal-preposition)
+
     ; Spatial relations and prepositions  --------------------------------------
     (S             -> (Var Spatial-VP)                    sem-spatial)
+    (S             -> (Def-Art Var Spatial-VP)            sem-spatial-def)
     (Spatial-VP    -> (S-Cop Spatial-PP)                  sem-spatial-vp)
     (Spatial-VP    -> (S-Cop Adv-Directly Spatial-PP)     sem-spatial-adv-vp)
     (Spatial-PP    -> (To-Prep Def-Art Spat-Horiz-Rel
                                Of-Prep Var)               sem-spatial-horizontal)
+    (Spatial-PP    -> (To-Prep Def-Art spat-horiz-rel
+                               Of-Prep Def-Art Var)       sem-spatial-horizontal-det)
     (Spatial-PP    -> (Spat-Vert-Rel Var)                 sem-spatial-vertical)
+    (Spatial-PP    -> (Spat-Vert-Rel Def-Art Var)         sem-spatial-vertical-det)
     (Spatial-PP    -> (In-Prep Spat-Depth-Rel Of-Prep
                                Var)                       sem-spatial-depth)
+    (Spatial-PP    -> (In-Prep Spat-Depth-Rel Of-Prep
+                               Def-Art Var)               sem-spatial-depth-det)
     (Spatial-PP    -> (In-Prep Spat-BW-Rel Var Conn Var)  sem-spatial-between)
+    (Spatial-PP    -> (In-Prep Spat-BW-Rel Def-Art Var
+                               Conn Def-Art Var)          sem-spatial-between-det)
     (Spatial-PP    -> (In-Prep Def-Art Same-Rel
                                Spat-Place-N Spat-Compare
                                Var)                       sem-spatial-same)
+    (Spatial-PP    -> (In-Prep Def-Art Same-Rel
+                               Spat-Place-N Spat-Compare
+                               Def-Art Var)               sem-spatial-same-det)
     (Spatial-PP    -> (In-Prep Indef-Art Diff-Rel
                                Spat-Place-N Spat-Compare
                                Var)                       sem-spatial-different)
+    (Spatial-PP    -> (In-Prep Indef-Art Diff-Rel
+                               Spat-Place-N Spat-Compare
+                               Def-Art Var)               sem-spatial-different-det)
+
     ; Causal connectives  -----------------------------------------------------
     (S             -> (S Causal-Verb S)                   sem-causal)
     (S             -> (Punct S Causal-Verb S)             sem-ccausal)
+
     ; Epistemic relations  ----------------------------------------------------
     (S             -> (Var Ep-Verb Det-That S)            sem-epistemic)
+
     ; Noun phrases (quantificational, temporal) -------------------------------
     (Quant-NP      -> (Det Nouns)                         sem-quant)
     (Quant-NP      -> (Det-Scalar Comp-Than Num Nouns)    sem-scalar-quant)
     (Quant-NP      -> (Adv-Exactly Num Nouns)             sem-numerical-quant)
     (Quant-NP      -> (Def-Art Det-Multal Of-Prep Nouns)  sem-multal-quant)
-
-    ; Verb phrases (predicates, temporal, causal) -----------------------------
-
 
     ; Terminals and particles -------------------------------------------------
     (Conn           -> and                                and)
@@ -612,6 +629,9 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
           (mapcar #'(lambda (x) (substitute subject 'subject x :test #'equals)) (spatial-template int))))
   int)
 
+(defun sem-spatial-def (the subject int)
+  (sem-spatial subject int))
+
 (defun sem-spatial-vp (is int)
   (setf (spatial-distance int) :infinity)
   int)
@@ -625,23 +645,41 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
 (defun sem-spatial-horizontal (to the1 relation of obj)
   (make-instance 'sp-intension :obj obj :rel relation :dim :left-right :temp nil :dist nil))
 
+(defun sem-spatial-horizontal-det (to the1 relation of the2 obj)
+  (sem-spatial-horizontal to the1 relation of obj))
+
 (defun sem-spatial-vertical (relation obj)
   (if (listp relation)
       (make-instance 'sp-intension :obj obj :rel (first relation) :dim :behind-front :temp nil :dist nil)
   (make-instance 'sp-intension :obj obj :rel relation :dim :below-above :temp nil :dist nil)))
 
+(defun sem-spatial-vertical-det (relation the1 obj)
+  (sem-spatial-vertical relation obj))
+
 (defun sem-spatial-depth (in relation of obj)
   (make-instance 'sp-intension :obj obj :rel relation :dim :behind-front :temp nil :dist nil))
+
+(defun sem-spatial-depth-det (in relation of the1 obj)
+  (sem-spatial-depth in relation of obj))
 
 (defun sem-spatial-between (in between obj1 and obj2)
   (make-instance 'sp-intension :obj (list obj1 obj2) :rel nil :dim nil :dist nil :temp (list (list obj1 'subject obj2)
                                                                                              (list obj2 'subject obj1))))
 
+(defun sem-spatial-between-det (in between the1 obj1 and the2 obj2)
+  (sem-spatial-between in between obj1 and obj2))
+
 (defun sem-spatial-same (in the same place as obj)
   (make-instance 'sp-intension :obj obj :rel :equal :dim nil :temp nil :dist nil))
 
+(defun sem-spatial-same-det (in the1 same place as the2 obj)
+  (sem-spatial-same in the1 same place as obj))
+
 (defun sem-spatial-different (in a different place as obj)
   (make-instance 'sp-intension :obj obj :rel :not-equal :dim nil :temp nil :dist nil))
+
+(defun sem-spatial-different-det (in a different place as the obj)
+  (sem-spatial-different in a different place as obj))
 
 (defun sem-causal (first relation second)
   (case relation

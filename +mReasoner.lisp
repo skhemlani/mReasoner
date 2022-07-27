@@ -64,7 +64,7 @@
   (let (pathname)
     #+lispworks (setf pathname (current-pathname file))
     #+ccl       (setf pathname (merge-pathnames file (or *load-pathname* *loading-file-source-file*)))
-	#+clisp     (setf pathname (merge-pathnames file (or *load-pathname* *loading-file-source-file*)))
+    #+clisp     (setf pathname (merge-pathnames file (or *load-pathname* *loading-file-source-file*)))
     #+sbcl      (setf pathname (merge-pathnames (sb-unix:posix-getcwd/) file))
     pathname))
 
@@ -92,6 +92,7 @@
                                         "Utilities.lisp"
                                         "API.lisp"
                                         "Parser.lisp"
+                                        "Observer.lisp"
                                         "HighLevel.lisp"
                                         "Scanner.lisp"
                                         "Builder.lisp"       
@@ -112,11 +113,12 @@
   (load (file-path "Utilities.lisp"))
   (load (file-path "API.lisp"))
   (load (file-path "Parser.lisp"))
-  (load (file-path "HighLevel.lisp"))
-  (load (file-path "Scanner.lisp"))
+  (load (file-path "Observer.lisp"))
   (load (file-path "Builder.lisp"))
+  (load (file-path "Scanner.lisp"))
   (load (file-path "FormConclusions.lisp"))
   (load (file-path "Counterexamples.lisp"))
+  (load (file-path "HighLevel.lisp"))
   (load (file-path "Diagnostics.lisp"))
   (load (file-path "jpd-belief-icon.lisp")))
 

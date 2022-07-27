@@ -738,3 +738,35 @@ t))
      ((,Min-ab ,Maj-bc) "Is it necessary that..." (,Min-ac)  T 4.5 0.5 0.4 1.0 "7 - Multiple model - P3"  45  NIL T)
      ((,Maj-ab ,Min-bc) "Is it necessary that..." (,Min-ac)  T 4.5 0.5 0.4 1.0 "8 - Multiple model - P10" 41  NIL T)
      ((,Min-ba ,Min-bc) "Is it necessary that..." (,Min-ac)  T 4.5 0.5 0.4 1.0 "9 - Multiple model - P4"  51  NIL T)))
+
+#|
+
+(setf wLx (parse '(W is to the left of X)))
+(setf xLy (parse '(X is to the left of Y)))
+(setf zAw (parse '(Z is above W)))
+(setf wRx (parse '(W is to the right of X)))
+(setf xRy (parse '(X is to the right of Y)))
+(setf zAx (parse '(Z is above X)))
+(setf yLx (parse '(Y is to the left of X)))
+(setf xRw (parse '(X is to the right of W)))
+(setf wAx (parse '(W is above X)))
+(setf zLx (parse '(Z is to the left of X)))
+(setf zLy (parse '(Z is to the left of Y)))
+(setf zRy (parse '(Z is to the right of Y)))
+(setf wRz (parse '(W is to the right of Z)))
+(setf yLz (parse '(Y is to the left of Z)))
+(setf yRz (parse '(Y is to the right of Z)))
+(setf zRx (parse '(Z is to the right of X)))
+(setf wAz (parse '(W is above Z)))
+
+(defparameter *spatial-inference-in-prep*
+  `(((,wLx ,xLy ,zAw) "Is it necessary that..." (,zLx) NIL 5.5 0.5 0.0 1.0 "1 - One model"      00  NIL T)
+    ((,wLx ,yLx ,zAw) "Is it necessary that..." (,zLy) NIL 5.5 0.5 0.0 1.0 "2 - One model"      00  NIL T)
+    ((,wAx ,xRy ,zAx) "Is it necessary that..." (,zRy) NIL 5.5 0.5 0.0 1.0 "3 - One model"      00  NIL T)
+    ((,wAx ,xRy ,zAx) "Is it necessary that..." (,wRz) NIL 5.5 0.5 0.0 1.0 "4 - One model"      00  NIL T)
+    ((,wLx ,yLx ,zAw) "Is it necessary that..." (,yLz) NIL 5.5 0.5 0.0 1.0 "5 - Multiple model" 00  NIL T)
+    ((,wLx ,xRy ,zAw) "Is it necessary that..." (,yRz) NIL 5.5 0.5 0.0 1.0 "6 - Multiple model" 00  NIL T)
+    ((,xRw ,yLx ,wAz) "Is it necessary that..." (,zRx) NIL 5.5 0.5 0.0 1.0 "7 - Multiple model" 00  NIL T)
+    ((,xRw ,xRy ,wAz) "Is it necessary that..." (,zLy) NIL 5.5 0.5 0.0 1.0 "8 - Multiple model" 00  NIL T)))
+
+|#

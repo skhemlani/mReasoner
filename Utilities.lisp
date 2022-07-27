@@ -29,6 +29,26 @@
   (push newelt (cdr (nthcdr index lst))) 
   lst)
 
+(defun insert-at (item list index &key (append nil))
+  "Inserts item into list (of lists) at position index; if :append is t,
+   then it appends the item to the end of list at position index"
+  (cond
+    ((< index 0)                     (append item (copy-list list)))
+    ((and (= index 0)
+          (or (equals append :after)
+              (equals append t)))    (cons (append (copy-list (first list)) item) (rest list)))
+    ((and (= index 0)
+          (equals append :before))   (cons (append item (copy-list (first list))) (rest list)))
+    ((and (= index 0) (not append))  (cons item list))
+    ((endp list)                     (list item))
+    (t (cons (first list)            (insert-at item (rest list) (1- index) :append append)))))
+
+(defun remove-from (item list-of-lists)
+  "Removes an item from a list of lists, and deletes nils produced if necessary"
+  (let* ((list-of-lists (mapcar #'(lambda (x) (remove item x :test #'equals)) list-of-lists))
+         (list-of-lists (remove-if #'null list-of-lists)))
+    list-of-lists))
+
 (defun all-positions (needle haystack)
   (loop
     for element in haystack 
@@ -307,6 +327,30 @@ first, print-indiv prints properties in order of template"
   (if (equalp (first property) '-)
       (format nil "-~A " (second property))
     (format nil "~A " (first property))))
+
+; Printing for sp-models ----------------------------------------------------------
+
+(defmethod serialize-model ((model sp-model))
+  "Serialize model for sp-models"
+  (let ((entities (entities model))
+        transposed-entities)
+    (dotimes (i (length (dimensions model)))
+      (push (mapcar #'(lambda (x) (nth i x)) entities) transposed-entities)) 
+    
+    (format nil "~{~a~^ ~}" (serialize-sp-grid transposed-entities))))
+
+(defun serialize-sp-grid (grid)
+  (if (null grid) nil
+    (append (list (serialize-sp-column (first grid))) (serialize-sp-grid (rest grid)))))
+
+(defun serialize-sp-column (column)
+  (if (null column) ""
+    (format nil "[ ~A ] ~A+"
+            (serialize-sp-cell (first column))
+            (serialize-sp-column (rest column)))))
+
+(defun serialize-sp-cell (cell)
+  (format nil "~{~a~^ ~}" cell))
 
 ; Printing for t-models ----------------------------------------------------------
 

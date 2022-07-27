@@ -312,7 +312,7 @@
 ; ------------------------------ For temporal models ------------------------------
 
 (defmethod start-mod-stochastically ((intension t-intension) &key (model nil) (attempt *build-attempts*))
-  (let* ((model (start-mod intension)))
+  (let* ((model (start-mod intension :model model)))
     (setf (capacity model) (generate-size))
     model))
 
@@ -624,7 +624,7 @@
 ; ------------------------------ For spatial models ------------------------------
 
 (defmethod start-mod-stochastically ((intension sp-intension) &key (model nil) (attempt *build-attempts*))
-  (let* ((model (start-mod intension)))
+  (let* ((model (start-mod intension :model model)))
     (setf (capacity model) (generate-size))
     model))
 
@@ -693,7 +693,17 @@
              (equals direction :plus))  (attempt-merge thing (append list (list thing)) :direction direction))
        ((and (listp thing)
              (equals direction :minus)) (attempt-merge thing (append (list thing) list) :direction direction)))
-    (error "Need to implement fit strategy (see Ragni & Knauff, 2013).")))
+    (cond ; implements nearest fit strategy (ff-strategy in R & K 2013)
+     (expand                          (insert-and-2d-expand thing list target :direction direction))
+     ((null list)                     nil)
+     ((and (symbolp thing)
+           (equals direction :plus))  (attempt-merge thing (insert-at (list thing) list (1+ (thing-position target list))) :direction direction))
+     ((and (symbolp thing)
+           (equals direction :minus)) (attempt-merge thing (insert-at (list thing) list (thing-position target list)) :direction direction))
+     ((and (listp thing)
+           (equals direction :plus))  (insert-at thing list (1+ (first (thing-position (first (flatten target)) list)))))
+     ((and (listp thing)
+           (equals direction :minus)) (insert-at thing list (first (thing-position (first (flatten target)) list)))))))
 
 (defun attempt-merge (thing things &key (direction nil))
   "By default, the fn insert-1d-thing at simply tacks the 'thing' onto the right or the
