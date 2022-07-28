@@ -31,11 +31,11 @@ This command returns an "intension", i.e., a blueprint for building mental model
     RELATION             INCLUDE
     ACTIVE               T
 
-The intension provides a set-theoretic modal semantics for building representations. Multiple intentions can be used to 
+The intension provides a set-theoretic modal semantics for building representations. Hence, intensions capture the intended meaning of a natural language sentence. These intensions are then used to construct models using the **interpret** function.
 
 ### Building models ("interpreting" intensions)
 
-The system can build models using the **interpret** command, which processes intensions to stochastically construct a model in which all the intensions are true. For example:
+The system can build models using the **interpret** function. This function takes a list of premises (strings), parses them into intensions, and then attempts to stochastically construct a model in which all those intensions are true. For example:
 
     > (interpret '("All A are B" "Some B are C"))
     (#<Q-MODEL 4020347923>)
@@ -58,6 +58,30 @@ What follows given the two premises above? In particular, what's the relation be
     (#<Q-INTENSION 4020157D53> #<Q-INTENSION 402016F873>)
 
 The system generates two conclusions, which correspond to "Some A are C" and "Some C are A".
+
+### The iconic structure of model representations
+
+A fundamental proposal of the model theory is that mental models are *iconic*: their structure mimics the structure of the situations they represent. For that reason, mReasoner constructs different models for different domains. It can construct quantificational models, as shown above. It can also construct temporal models, e.g.,
+
+    > (interpret '("A happened during B" "C happened after B" "D happened after C"))
+    (#<T-MODEL 8210048643>)
+
+    > (print-model (first *))
+	
+	[B   ]    
+	   A   C D
+
+and spatial models, e.g.,
+
+    > (interpret '("A is to the left of B" "B is to the left of C" "C is above D"))
+    (#<SP-MODEL 80101280D3>)
+
+    > (print-model (first *))
+	
+	A                B                C                
+	                                  D
+
+Each of these forms of model representation are scanned, processed, and revised in ways unique to their structure.
 
 ### References
 
