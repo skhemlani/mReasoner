@@ -386,7 +386,7 @@
                         (list (second-clause intension))))
          (neither     (when (is-initial (neither intension))
                         (list (negate (first-clause intension)) (negate (second-clause intension)))))
-         1st-or-2nd-only possibilities)
+         new-model 1st-or-2nd-only possibilities)
 
     (when (system2-enabled?)
       (setf
@@ -401,10 +401,10 @@
 
     (cond
      ((is-affirmative-atom intension)
-      (setf model
+      (setf new-model
             (make-instance 's-model :poss (list (list (first-clause intension))) :fn (list intension))))
      ((is-negative-atom intension)
-      (setf model
+      (setf new-model
             (make-instance 's-model :poss (list (list '- (first-clause intension))) :fn (list intension))))
      (t
       (setf 1st-or-2nd-only
@@ -416,19 +416,19 @@
             (if (or (is-ori intension) (is-ore intension))
                 (append 1st-or-2nd-only (build-intersection neither) (build-intersection both))
               (append (build-intersection both) 1st-or-2nd-only (build-intersection neither))))
-      (setf model
+      (setf new-model
             (make-instance 's-model :poss possibilities :fn (list intension)))))
 
     (when model
-      (setf (possibilities model)
-            (remove-duplicates (cartesian-product-of-models (list (possibilities mod)
-                                                                  (possibilities model)))
+      (setf (possibilities new-model)
+            (remove-duplicates (cartesian-product-of-models (list (possibilities model)
+                                                                  (possibilities new-model)))
                                :test #'equals))
-      (setf (footnote model)
-            (append (footnote mod)
-                    (footnote model)))
-      (setf model (make-instance 's-model :poss (embed-s-models model) :fn (footnote model))))
-    model))
+      (setf (footnote new-model)
+            (append (footnote model)
+                    (footnote new-model)))
+      (setf new-model (make-instance 's-model :poss (embed-s-models new-model) :fn (footnote new-model))))
+    new-model))
 
 (defun build-union (intensions footnote)
   "Takes a list of intensions; if list is nil, return.
