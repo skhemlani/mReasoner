@@ -75,6 +75,9 @@
 (defmethod equals ((a string) (b string))
   (string-equal a b))
 
+(defmethod equals ((a fixnum) (b fixnum))
+  (= a b))
+
 (defmethod equals (a b)
   (when (equals (type-of a) (type-of b))
     (equals a b)))
@@ -1029,10 +1032,42 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
 (defmethod find-referent-in-model (referent (model sp-model))
   (thing-position referent (things model)))
 
+(defun get-thing-from-enumerated-duplicate (enumerated-duplicate-thing)
+  "Ex: thing#2 => thing
+   SSK 2022-11-01
+   This fn exists as a helper to thing-position and other various functions, so
+   that it can locate 'thing' in a list such as: (obj obj obj thing#2 thing#4 obj),
+   which would not typically get matched -- relevant for when multiple objects of
+   the same type are observed and then enumerated, as in ASTEREX. To complicate
+   matters further, Lispworks and CCL have slightly different variants of
+   split-sequence."
+  (let* ((thing (format nil "~A" enumerated-duplicate-thing))
+         (thing #+lispworks (split-sequence "#" thing)
+                #+ccl (split-sequence #\# thing))
+         (thing (read-from-string (nth 0 thing))))
+    thing))
+
+(defun get-enumeration-from-enumerated-duplicate (enumerated-duplicate-thing)
+  "Ex: thing#2 => 2
+   SSK 2022-11-01
+   This fn exists as a helper to thing-position and other various functions, so
+   that it can locate 'thing' in a list such as: (obj obj obj thing#2 thing#4 obj),
+   which would not typically get matched -- relevant for when multiple objects of
+   the same type are observed and then enumerated, as in ASTEREX. To complicate
+   matters further, Lispworks and CCL have slightly different variants of
+   split-sequence."
+  (let* ((thing (format nil "~A" enumerated-duplicate-thing))
+         (thing #+lispworks (split-sequence "#" thing)
+                #+ccl (split-sequence #\# thing)))
+    (when (> (length thing) 1)
+      (read-from-string (nth 1 thing)))))
+
 (defun thing-position (thing things)
   "Gets position of a specified object (thing) from list representing a vector (depth = 2), matrix (depth = 3),
    or 3D grid (depth = 4)."
-  (let ((tester  (lambda (x y) (member x (flatten y) :test #'equals))))
+  (let ((tester (lambda (x y) (member (get-thing-from-enumerated-duplicate x)
+                                    (mapcar #'get-thing-from-enumerated-duplicate
+                                            (flatten y)) :test #'equals))))
     (case (depth things)
       (2 (position thing things :test tester))
       (3 (let* ((list-pos (position thing things :test tester)))
@@ -1098,6 +1133,22 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
   (when (equals (spatial-relation intension) :not-equal)
     intension))
 
+(defun is-superlative-leftmost (argument-modifier)
+  "If intension is 'X is to the left of the leftmost Y', rtn it, else nil"
+  (equals argument-modifier '(--- :LEFT-RIGHT)))
+
+(defun is-superlative-rightmost (argument-modifier)
+  "If intension is 'X is to the left of the righmost Y', rtn it, else nil"
+  (equals argument-modifier '(+++ :LEFT-RIGHT)))
+
+(defun is-superlative-lowermost (argument-modifier)
+  "If intension is 'X is to the left of the lowermost Y', rtn it, else nil"
+  (equals argument-modifier '(--- :BELOW-ABOVE)))
+
+(defun is-superlative-uppermost (argument-modifier)
+  "If intension is 'X is to the left of the uppermost Y', rtn it, else nil"
+  (equals argument-modifier '(+++ :BELOW-ABOVE)))
+
 (defmethod relation ((intension sp-intension))
   "Outputs relation of assertion
    (relation (parse '(A is behind B))) => B "
@@ -1119,14 +1170,18 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
     (let ((new-model (copy-class-instance model)))
       (setf (entities new-model) (sp-drop-empty-cells
                                   (sp-find-and-replace old new (entities new-model))))
+      ;(format t "~A~% removing ~A => ~%~A~%~%" (entities model) old (entities new-model))
       new-model)))
 
 (defun set-thing-at-position (thing entities column row &optional thing-to-swap-out)
   "Sets a given thing right in place at a position within the (2D) model;
    If nothing is in that spot, creates a space and adds the thing;
    If something is already in that position, it overwrites it;
-   If multiple things are in that position, it either adds to the list or,
-      if thing-to-swap-out is provided, it attempts to swap it out.
+   If multiple things are in that position,
+      then if thing-to-swap-out is provided, it attempts to swap it out while
+      preserving enumerations, e.g., swapping out RELAY&DUMMY with RELAY yields RELAY#4
+      (if 'target' includes RELAY&DUMMY#4)
+      Otherwise it either 'thing' adds to the 'target'.
    Returns original set of entities in every other case."
   (let ((ents (copy-tree entities)))
     (dotimes (c (length ents))
@@ -1134,13 +1189,18 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
         (when (and (= column c) (= row r))
           (let ((target (nth r (nth c ents))))
             (cond
-             ((symbolp target)
-              (setf (nth r (nth c ents)) thing))
-             ((null target)
-              (setf (nth r (nth c ents)) (list thing)))
+             ((symbolp target) (setf (nth r (nth c ents)) thing))
+             ((null target)    (setf (nth r (nth c ents)) (list thing)))
              ((listp target)
               (if thing-to-swap-out
-                  (setf (nth r (nth c ents)) (substitute thing thing-to-swap-out target :count 1))
+                  (let ((things-to-swap-out
+                         (member thing-to-swap-out target :test #'(lambda (x y) (or (equals x y)
+                                                                                    (equals (get-thing-from-enumerated-duplicate x)
+                                                                                            (get-thing-from-enumerated-duplicate y)))))))
+                    (dolist (t-t-s-o things-to-swap-out)
+                      (let* ((enumeration (get-enumeration-from-enumerated-duplicate t-t-s-o))
+                             (enumerated-thing (read-from-string (format nil "~A#~A" thing enumeration))))
+                        (setf (nth r (nth c ents)) (substitute enumerated-thing t-t-s-o (nth r (nth c ents)) :count 1)))))
                 (setf (nth r (nth c ents)) (append (list thing) target)))))))))
   ents))
 
@@ -1157,14 +1217,21 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
    ((null entities) nil)
    ((listp entities)
     (if (listp (first entities))
-        (append (list (sp-find-and-replace old new (first entities))) (sp-find-and-replace old new (rest entities)))
-      (if (equals (first entities) old)
-          (if (null new)
-              (list (sp-find-and-replace old new (rest entities)))
-            (append (list new) (sp-find-and-replace old new (rest entities))))
-        (append (list (first entities)) (sp-find-and-replace old new (rest entities))))))))
+        (append (list (sp-find-and-replace old new (first entities)))
+                (sp-find-and-replace old new (rest entities)))
+      (let ((first-entity-thing (get-thing-from-enumerated-duplicate (first entities)))
+            (first-entity-enum (get-enumeration-from-enumerated-duplicate (first entities))))
+        (if (or (equals (first entities) old) (equals first-entity-thing old))
+            (if (null new)
+                (sp-find-and-replace old new (rest entities))
+              (if first-entity-enum
+                  (append (list (read-from-string (format nil "~A#~A" new first-entity-enum)))
+                          (sp-find-and-replace old new (rest entities)))
+                (append (list new)
+                        (sp-find-and-replace old new (rest entities)))))
+          (append (list (first entities)) (sp-find-and-replace old new (rest entities)))))))))
 
-(defun sp-drop-empty-cells (entities)
+#|(defun sp-drop-empty-cells (entities)
   "Clean up grid when cells are empty"
   (cond
    ((null entities) nil)
@@ -1173,23 +1240,48 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
         (sp-drop-empty-cells (rest entities))
       nil))
    (t (append (list (first entities)) (sp-drop-empty-cells (rest entities))))))
+|#
 
-(defmethod duplicate-entities ((model sp-model) &optional things)
+(defun sp-drop-empty-cells (entities)
+  entities)
+
+(defmethod duplicate-things ((model sp-model))
   "Checks to see if there are duplicate entities in model; if things provided,
    then it checks to see if the duplicate entities in the model are the same as in things."
-  (let* ((entities (flatten (entities model)))
-         (counts   (mapcar #'(lambda (x) (count x entities)) entities))
+  (let* ((things (flatten (things model)))
+         (counts (mapcar #'(lambda (x) (count x things)) things))
          duplicates)
-    (dotimes (i (length entities))
-      (when (> (nth i counts) 1) (push (nth i entities) duplicates)))
-    (if things
-        (intersection (remove-duplicates duplicates :test #'equals) things)
-      (remove-duplicates duplicates :test #'equals))))
+    (dotimes (i (length things))
+      (when (> (nth i counts) 1) (push (nth i things) duplicates)))
+    (if duplicates
+        duplicates
+      (progn
+        (setf duplicates (remove-if (lambda (x) (equals (get-thing-from-enumerated-duplicate x) x)) things))
+        (setf duplicates (mapcar #'get-thing-from-enumerated-duplicate duplicates))
+        (remove-duplicates duplicates)))))
 
 (defmethod build-dummy-sp-models ((duplicates list) (model sp-model))
+  "Creates dummy spatial models in situations in which there are duplicates, e.g.,
+   two instances of 'orange' in:
+   
+      TACO
+      ORANGE#1   ORANGE#2
+      APPLE      SANDWICH
+
+   The fn creates the following transforms the entities into two separate models:
+
+      Model 1                            Model 2
+      -------                            -------
+      TACO                               TACO
+      ORANGE#1   ORANGE&DUMMY#2          ORANGE&DUMMY#1     ORANGE#2
+      APPLE      SANDWICH                APPLE              SANDWICH
+
+   This way the fn validate-model can proceed as normal to validate each instance
+   of ORANGE."
   (let* ((dup-names-and-pos   (mapcar #'(lambda (x) (list x (thing-duplicate-positions x (entities model)))) duplicates))
          (dup-names-and-pos   (sort dup-names-and-pos #'(lambda (x y) (< (length (second x)) (length (second y))))))
-         (dummy-names         (mapcar #'(lambda (x) (read-from-string (format nil "~A_dummy" x))) duplicates))
+         (duplicates          (mapcar #'first dup-names-and-pos))
+         (dummy-names         (mapcar #'(lambda (x) (read-from-string (format nil "~A&dummy" x))) duplicates))
          (dummy-entities-base (copy-tree (entities model)))
          i dummy-entities-l1 dummy-entities-l2)
     (dotimes (i (length duplicates))
@@ -1212,18 +1304,25 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
             dummy-entities-l1)))
 
 (defun resolve-dummy-sp-models (duplicates entities)
-  (let* ((dummy-names         (mapcar #'(lambda (x) (read-from-string (format nil "~A_dummy" x))) duplicates))
+  "Removes &DUMMY tags from dummy-models (see build-dummy-models above)"
+  (let* ((dummy-names         (mapcar #'(lambda (x) (read-from-string (format nil "~A&dummy" x))) duplicates))
          (no-more-dummies (copy-tree entities)))
     (dotimes (i (length duplicates))
       (setf no-more-dummies (sp-find-and-replace (nth i dummy-names) (nth i duplicates) no-more-dummies)))
     no-more-dummies))
 
 (defun thing-duplicate-positions (thing entities)
+  "Finds all of the positions of any 'thing', regardless of whether the thing
+   is enumerated or not or if it's a dummy thing, e.g.,
+   (thing-duplicate-positions 'orange '(((APPLE) NIL (ORANGE\#1) (TACO)) ((SANDWICH) NIL (ORANGE&Dummy\#2) NIL) (NIL NIL NIL NIL)))
+   => ((1 2) (0 2))"
   (let (pos positions)
-    (dotimes (i (length entities))
-      (setf pos (thing-position thing (nth i entities)))
-      (when pos
-        (push (list i pos) positions)))
+    (dotimes (column (length entities))
+      (dotimes (row (length (first entities)))
+        (let ((cell (mapcar #'get-thing-from-enumerated-duplicate (nth row (nth column entities)))))
+          (when (or (member thing cell)
+                    (member (read-from-string (format nil "~A&dummy" thing)) cell))
+          (push (list column row) positions)))))
     positions))
 
 ; ---------------------------------------------------------------------------------
@@ -1371,6 +1470,8 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
       (error "get-command-line-arguments not supported for your implementation"))))
 
 (defun run-system-command (command args)
+  (declare (ignore command))
+  (ignore args)
   #+ccl (run-program command args :output *standard-output*))
 
 (defun find-argument (arg)
@@ -1483,18 +1584,12 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
 	(format t "---------------------------------------------------------------~%~
 	           mReasoner version ~A (~A)                                     ~%~
                    Binary for Ragni and colleagues' Syllogism Challenge          ~%~
-	           Copyright (C) 2017 by S. Khemlani and P.N. Johnson-Laird      ~%~
+	           Developed by S. Khemlani and P.N. Johnson-Laird      ~%~
                                                                                  ~%~
                    Type '(syllogism-challenge \"AA1\")' to run the syllogism     ~%~
                    challenge using the default parameter settings. To modify the ~%~
                    parameter settings, type '(manual)'. Type '(quit)' to quit    ~%~
                    mReasoner.                                                    ~%~
-                                                                                 ~%~
-                   This software is licensed under a Creative Commons Attribution-~%~
-                   NonCommercial-ShareAlike 4.0 International License. For more  ~%~
-                   information on this license, please visit:                    ~%~
-                                                                                 ~%~
-                          http://creativecommons.org/licenses/by-nc-sa/4.0/      ~%~
 		   ---------------------------------------------------------------~%"
                 *version*
                 "2017-09-06"))
@@ -1556,3 +1651,30 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
             (mreasoner-repl))))
 
 |#
+
+; ---------------------------------------------------------------------------------
+; Distribution statement
+; ----------------------
+; Approved for public release: distribution unlimited. Redistributions of source and
+; binary forms, with or without modification, are permitted if redistributions retain
+; the above distribution statement and the following disclaimer.
+; 
+; Disclaimer
+; ----------
+; The software is supplied "as is" without warranty of any kind.
+;
+; As the owner of the software, the United States, the United States Department of
+; Defense, and their employees: (1) disclaim any warranties, express or implied,
+; including but not limited to any implied warranties of merchantability, fitness
+; for a particular purpose, title or non-infringement, (2) do not assume any legal
+; liability or responsibility for the accuracy, completeness, or usefulness of the
+; software, (3) do not represent that use of the software would not infringe
+; privately owned rights, (4) do not warrant that the software will function
+; uninterrupted, that it is error-free or that any errors will be corrected.
+;
+; Portions of the software resulted from work developed by or for the U.S.
+; Government subject to the following license: the Government is granted for itself
+; and others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+; license in this computer software to reproduce, prepare derivative works, to
+; perform or display any portion of that work, and to permit others to do so for
+; Government purposes.

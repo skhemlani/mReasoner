@@ -28,16 +28,38 @@
 (defun print-header ()
   (format t "---------------------------------------------------------------~%~
 	     mReasoner version ~A (~A)                                      ~%~
-             ASTEREX system for spatial reasoning                           ~%~
-	     Copyright (C) 2022 by S. Khemlani and P.N. Johnson-Laird       ~%~
-                                                                            ~%~
-             This software is licensed under a Creative Commons Attribution-~%~
-             NonCommercial-ShareAlike 4.0 International License. For more   ~%~
-             information on this license, please visit:                     ~%~
-                                                                            ~%~
-                    http://creativecommons.org/licenses/by-nc-sa/4.0/       ~%~
+			 Developed by Sangeet Khemlani <skhemlani@gmail.com> and ~%~
+			 and Phil Johnson-Laird <phil@princeton.edu>~%~
+			 with supporting code by: Max Lotstein, Marco Ragni~%~
+			 ---------------------------------------------------------------~%~
+             Distribution statement: Approved for public release: distribut-~%~
+			 ion unlimited. Redistributions of source and binary forms, with~%~
+			 or without modification, are permitted if redistributions ret-~%~
+			 ain the above distribution statement and the following discla-~%~
+			 imer.~%~
+			 ~%~
+			 Disclaimer: The software is supplied \"as is\" without warranty~%~
+			 of any kind. As the owner of the software, the United States,~%~
+			 the United States Department of Defense, and their employees:~%~
+			 (1) disclaim any warranties, express or implied, including but~%~
+			 not limited to any implied warranties of merchantability, fit-~%~
+			 ness for a particular purpose, title or non-infringement, (2)~%~
+			 do not assume any legal liability or responsibility for the~%~
+			 accuracy, completeness, or usefulness of the software, (3) do~%~
+			 not represent that use of the software would not infringe pri-~%~
+			 vately owned rights, (4) do not warrant that the software will~%~
+		     function uninterrupted, that it is error-free or that any err-~%~
+			 ors will be corrected.~%~
+			 ~%~
+			 Portions of the software resulted from work developed by or~%~
+			 for the U.S. Government subject to the following license: the~%~
+			 Government is granted for itself and others acting on its be-~%~
+			 half a paid-up, nonexclusive, irrevocable worldwide license in~%~
+			 this computer software to reproduce, prepare derivative works,~%~
+			 to perform or display any portion of that work, and to permit~%~
+			 others to do so for Government purposes.~%~
              ---------------------------------------------------------------~%"
-                *version* "2022-05-20"))
+                *version* "2023-08-17"))
 
 (defun process-input (&key (input-file nil) (output-file nil))
   "High level fn to take observation (in the form of a JSON file) + task, and output
@@ -65,9 +87,9 @@
       (let ((error-output (make-instance 'json-output)))
         (setf (error-log error-output) "Parser error")
         (write-to-json (to-json-object error-output) output-file)))
-    (error ()
+    (error (error-situation)
       (let ((error-output (make-instance 'json-output)))
-        (setf (error-log error-output) "Unspecified error")
+        (setf (error-log error-output) (format nil "Unhandled error: ~A" error-situation))
         (write-to-json (to-json-object error-output) output-file)))))
 
 (defun observe-or-comprehend (json &key (print-model t))
@@ -94,11 +116,19 @@
 
               (process-task json model output))
           (progn
-            (format t "Error: improperly formatted JSON file.~%")
+            (format t "Error: Improperly formatted JSON file.~%")
             (setf (error-log output) "Improperly formatted JSON file.")))
       (consistency-error ()
-        (format t "Inconsistent relations; unable to build model.~%")
-        (setf (error-log output) "Inconsistent relations; unable to build model.")))))
+        (format t "Error: Inconsistent relations; unable to build model.~%")
+        (setf (error-log output) "Inconsistent relations; unable to build model."))
+      (ambiguity-warning ()
+        (format t "Warning: Ambiguity detected in directive.~%")
+        (setf model (first *focus-candidates*))
+        (setf (model output)        model)
+        (setf (model-string output) (split-sequence (format nil "~%") (serialize-model (model output))))
+        (setf (warn-log output) "Ambiguity detected")
+        output)
+)))
 
 (defun process-observation (json-observation)
   "Constructs spatial model from observations JSON file"
@@ -112,10 +142,17 @@
                                           ((listp y)
                                            (mapcar #'read-from-string y)))) x)) things))
          (things (mapcar #'(lambda (x) (substitute nil '(-) x :test #'equals)) things))
-         (things (remove-if #'(lambda (x) (every #'null x)) things))
+         (things (trim-observation things))
+         (things (remove-if #'(lambda (x) (and (spatial-compression?) (every #'null x))) things))
          (things (transpose-list (reverse things)))
-         (things (remove-if #'(lambda (x) (every #'null x)) things)))
+         (things (remove-if #'(lambda (x) (and (spatial-compression?) (every #'null x))) things))
+         (things (trim-observation things)))
     (make-instance 'sp-model :things things :fn nil :dims '((:X :LEFT-RIGHT) (:Y :BELOW-ABOVE)))))
+
+(defun trim-observation (things)
+  (if (every #'null (first things))
+      (trim-observation (rest things))
+    things))
 
 (defun process-premises (json)
   (let ((premises (get-json-premises json)))
@@ -149,8 +186,6 @@
       (describe
        (setf (description output) (generate-description model))))
 
-    (setf *output* output)
-
     output))
 
 (defun get-json-premises (json-object)
@@ -183,8 +218,11 @@
 ; ---------------------------------------------------------------------------------
 
 (defmethod focus-on ((directive sp-intension) (observation sp-model))
-  (let* ((duplicates (duplicate-entities observation))
+  (setf *dir* directive)
+  (setf *obs* observation)
+  (let* ((duplicates (duplicate-things observation))
          (observations (build-dummy-sp-models duplicates observation))
+         (focus-candidates nil)
          focus)
     (loop for o in observations
           do
@@ -197,10 +235,20 @@
                     if (not (validate-model v o))
                       do
                         (setf foc (find-and-replace-all e nil foc)))
-              (setf focus foc)))
-    
-    (setf (things focus) (resolve-dummy-sp-models duplicates (things focus)))
-    focus))
+              (push foc focus-candidates)))
+
+    (mapcar #'(lambda (x) (setf (things x)
+                                (resolve-dummy-sp-models duplicates (things x))))
+            focus-candidates)
+    (setf focus-candidates (remove-if #'(lambda (x) (null (remove-duplicates (flatten (things x)))))
+                                      focus-candidates))
+    (setf focus-candidates (remove-duplicates focus-candidates :test #'equals :key #'(lambda (x) (entities x))))
+    (when (> (length focus-candidates) 1)
+      (setf *focus-candidates* focus-candidates)
+      (warn 'ambiguity-warning))
+    (setf focus (first focus-candidates))
+    (if focus focus
+      (make-instance 'sp-model :things nil :fn nil :dims '((:X :LEFT-RIGHT) (:Y :BELOW-ABOVE))))))
 
 (defun apply-directive-to-all-entities (directive entities)
   (let ((directive-copy (copy-class-instance directive)))
@@ -301,3 +349,29 @@
     (behind (format nil "~A is behind ~A"               (first-argument intension) (second-argument intension)))
     (otherwise (error "Can't identify relation."))))
 
+; ---------------------------------------------------------------------------------
+; Distribution statement
+; ----------------------
+; Approved for public release: distribution unlimited. Redistributions of source and
+; binary forms, with or without modification, are permitted if redistributions retain
+; the above distribution statement and the following disclaimer.
+; 
+; Disclaimer
+; ----------
+; The software is supplied "as is" without warranty of any kind.
+;
+; As the owner of the software, the United States, the United States Department of
+; Defense, and their employees: (1) disclaim any warranties, express or implied,
+; including but not limited to any implied warranties of merchantability, fitness
+; for a particular purpose, title or non-infringement, (2) do not assume any legal
+; liability or responsibility for the accuracy, completeness, or usefulness of the
+; software, (3) do not represent that use of the software would not infringe
+; privately owned rights, (4) do not warrant that the software will function
+; uninterrupted, that it is error-free or that any errors will be corrected.
+;
+; Portions of the software resulted from work developed by or for the U.S.
+; Government subject to the following license: the Government is granted for itself
+; and others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+; license in this computer software to reproduce, prepare derivative works, to
+; perform or display any portion of that work, and to permit others to do so for
+; Government purposes.

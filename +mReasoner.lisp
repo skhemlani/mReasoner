@@ -87,23 +87,23 @@
               (setf system:*stack-overflow-behaviour* nil) ; Suppress stack overflow warnings SSK 2015-02-05
 
               (defsystem "mReasoner"
-                              ()
-                              :members ("Classes.lisp"
-                                        "Utilities.lisp"
-                                        "API.lisp"
-                                        "Parser.lisp"
-                                        "Observer.lisp"
-                                        "HighLevel.lisp"
-                                        "Scanner.lisp"
-                                        "Builder.lisp"       
-                                        "FormConclusions.lisp"
-                                        "Counterexamples.lisp"
-                                        "Diagnostics.lisp"
-                                        "jpd-belief-icon.lisp" ;; FIX !!! SSK 4/19/12
-                                        "UserInterface.lisp"
-                               )
-                     :rules  ((:in-order-to :compile :all
-                                            (:requires (:load :previous)))))
+                ()
+                :members ("Classes.lisp"
+                          "Utilities.lisp"
+                          "API.lisp"
+                          "Parser.lisp"
+                          "Observer.lisp"
+                          "Builder.lisp"       
+                          "Scanner.lisp"
+                          "FormConclusions.lisp"
+                          "Counterexamples.lisp"
+                          "HighLevel.lisp"
+                          "Diagnostics.lisp"
+                          "jpd-belief-icon.lisp" ;; FIX !!! SSK 4/19/12
+                          "UserInterface.lisp"
+                          )
+                :rules  ((:in-order-to :compile :all
+                          (:requires (:load :previous)))))
               
               (lispworks:load-system "mReasoner" :force t))
 
@@ -169,19 +169,27 @@
    omega = 1.0, weakening always occurs; when omega = 0.0, individuals always report 'NVC' when
    a counterexample is found. When omega = 0.6, there's a 60% chance that weakening will occur.")
 
+(defparameter +kappa+ 0.0
+  "Parameter that controls whether spatial observations are compressed to eliminate spaces between
+   them or else retain their absolute positioning in a provided grid. When kappa = 0.0, no spatial
+   compression occurs; when kappa = 1.0, compression always occurs; when kappa = 0.6, there's a
+   60% chance of compression.")
+
 (defun reset-system-parameters ()
   (setf *stochastic* nil)
   (setf +lambda+ 4.0)
   (setf +sigma+ 0.0)
   (setf +epsilon+ 0.0)
-  (setf +omega+ 0.0))
+  (setf +omega+ 0.0)
+  (setf +kappa+ 0.0))
 
-(defun set-system-parameters (&key lambda sigma epsilon omega)
+(defun set-system-parameters (&key lambda sigma epsilon omega kappa)
   (setf *stochastic* t)
   (setf +lambda+ lambda)
   (setf +sigma+ sigma)
   (setf +epsilon+ epsilon)
-  (setf +omega+ omega))
+  (setf +omega+ omega)
+  (setf +kappa+ kappa))
 
 (defun stochastic-enabled? ()
   *stochastic*)
@@ -210,6 +218,9 @@
 
 (defun weaken-conclusions? ()
   (< (random 1.0) +omega+))
+
+(defun spatial-compression? ()
+  (< (random 1.0) +kappa+))
 
 (format t "~A[~A]~A~%"
         (make-string 40 :initial-element #\-)

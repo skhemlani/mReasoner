@@ -63,6 +63,9 @@
 (define-condition consistency-error (error)
   ((text :initarg :text :reader text)))
 
+(define-condition ambiguity-warning (warning)
+  ((text :initarg :text :reader text)))
+
 (define-condition false-heuristic-conclusion-error (error)
   ((text :initarg :text :reader text)))
 
@@ -107,12 +110,14 @@
   (:documentation "Intension for temporal assertions"))
 
 (defclass sp-intension (intension)
-  ((first-argument   :accessor subject           :initarg :subj)
-   (second-argument  :accessor object            :initarg :obj)
-   (relation         :accessor spatial-relation  :initarg :rel)
-   (dimension        :accessor spatial-dimension :initarg :dim)
-   (template         :accessor spatial-template  :initarg :temp)
-   (distance         :accessor spatial-distance  :initarg :dist))
+  ((first-argument           :accessor subject           :initarg :subj)
+   (second-argument          :accessor object            :initarg :obj)
+   (first-argument-modifier  :accessor subject-modifier  :initarg :subj-mod)
+   (second-argument-modifier :accessor object-modifier   :initarg :obj-mod)
+   (relation                 :accessor spatial-relation  :initarg :rel)
+   (dimension                :accessor spatial-dimension :initarg :dim)
+   (template                 :accessor spatial-template  :initarg :temp)
+   (distance                 :accessor spatial-distance  :initarg :dist))
   (:documentation "Intension for spatial assertions"))
 
 (defclass s-intension (intension)
@@ -180,5 +185,33 @@
    (validation    :accessor validation    :initarg :val   :initform nil)
    (model-string  :accessor model-string  :initarg :print :initform nil)
    (model         :accessor model         :initarg :mod   :initform nil)
+   (warning       :accessor warn-log      :initarg :war   :initform nil)
    (error         :accessor error-log     :initarg :err   :initform nil))
   (:documentation "Class for JSON output"))
+
+; ---------------------------------------------------------------------------------
+; Distribution statement
+; ----------------------
+; Approved for public release: distribution unlimited. Redistributions of source and
+; binary forms, with or without modification, are permitted if redistributions retain
+; the above distribution statement and the following disclaimer.
+; 
+; Disclaimer
+; ----------
+; The software is supplied "as is" without warranty of any kind.
+;
+; As the owner of the software, the United States, the United States Department of
+; Defense, and their employees: (1) disclaim any warranties, express or implied,
+; including but not limited to any implied warranties of merchantability, fitness
+; for a particular purpose, title or non-infringement, (2) do not assume any legal
+; liability or responsibility for the accuracy, completeness, or usefulness of the
+; software, (3) do not represent that use of the software would not infringe
+; privately owned rights, (4) do not warrant that the software will function
+; uninterrupted, that it is error-free or that any errors will be corrected.
+;
+; Portions of the software resulted from work developed by or for the U.S.
+; Government subject to the following license: the Government is granted for itself
+; and others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+; license in this computer software to reproduce, prepare derivative works, to
+; perform or display any portion of that work, and to permit others to do so for
+; Government purposes.

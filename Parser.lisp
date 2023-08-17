@@ -54,24 +54,21 @@ Section 4.6: Built-in intensions
     (Temporal-PP   -> (Temp-Verb Temp-Prep Var)           sem-temporal-preposition)
     (Temporal-PP   -> (Temp-Verb Temp-Rel Var)            sem-temporal-preposition)
 
-    ; Spatial relations and prepositions  --------------------------------------
-    (S             -> (Var Spatial-VP)                    sem-spatial)
-    (S             -> (Def-Art Var Spatial-VP)            sem-spatial-def)
+    ; Spatial relations, prepositions, superlatives  ---------------------------
+    (S             -> (Spatial-NP Spatial-VP)             sem-spatial-relative)
+    (Spatial-NP    -> (Var)                               sem-spatial-np)
+    (Spatial-NP    -> (Def-Art Var)                       sem-spatial-np-def)
+    (Spatial-NP    -> (Adj-Super Var)                     sem-spatial-adjnp)
+    (Spatial-NP    -> (Def-Art Adj-Super Var)             sem-spatial-adjnp-def)
     (Spatial-VP    -> (S-Cop Spatial-PP)                  sem-spatial-vp)
     (Spatial-VP    -> (S-Cop Adv-Directly Spatial-PP)     sem-spatial-adv-vp)
     (Spatial-PP    -> (To-Prep Def-Art Spat-Horiz-Rel
-                               Of-Prep Var)               sem-spatial-horizontal)
-    (Spatial-PP    -> (To-Prep Def-Art spat-horiz-rel
-                               Of-Prep Def-Art Var)       sem-spatial-horizontal-det)
-    (Spatial-PP    -> (Spat-Vert-Rel Var)                 sem-spatial-vertical)
-    (Spatial-PP    -> (Spat-Vert-Rel Def-Art Var)         sem-spatial-vertical-det)
+                               Of-Prep Spatial-NP)        sem-spatial-horizontal)
+    (Spatial-PP    -> (Spat-Vert-Rel Spatial-NP)          sem-spatial-vertical)
     (Spatial-PP    -> (In-Prep Spat-Depth-Rel Of-Prep
-                               Var)                       sem-spatial-depth)
-    (Spatial-PP    -> (In-Prep Spat-Depth-Rel Of-Prep
-                               Def-Art Var)               sem-spatial-depth-det)
-    (Spatial-PP    -> (In-Prep Spat-BW-Rel Var Conn Var)  sem-spatial-between)
-    (Spatial-PP    -> (In-Prep Spat-BW-Rel Def-Art Var
-                               Conn Def-Art Var)          sem-spatial-between-det)
+                               Spatial-NP)                sem-spatial-saggital)
+    (Spatial-PP    -> (In-Prep Spat-BW-Rel Spatial-NP
+                               Conn Spatial-NP)           sem-spatial-between)
     (Spatial-PP    -> (In-Prep Def-Art Same-Rel
                                Spat-Place-N Spat-Compare
                                Var)                       sem-spatial-same)
@@ -123,7 +120,13 @@ Section 4.6: Built-in intensions
     (Predet-Either  -> either                             either)
     (It-Pro         -> it                                 it)
     (Case-N         -> case                               case)
+    (Noun-Type      -> object                             :object)
+    (Noun-Type      -> person                             :person)
     (Adv-Directly   -> directly                           directly)
+    (Adj-Super      -> uppermost                          (+++ :below-above))
+    (Adj-Super      -> lowermost                          (--- :below-above))
+    (Adj-Super      -> rightmost                          (+++ :left-right))
+    (Adj-Super      -> leftmost                           (--- :left-right))
     (Spat-Horiz-Rel -> right                              +)
     (Spat-Horiz-Rel -> left                               -)
     (Spat-Vert-Rel  -> above                              +)
@@ -282,6 +285,7 @@ Section 4.6: Built-in intensions
 
 (defun extend-parse (lhs sem rhs rem needed)
   "Look for the categories needed to complete the parse."
+;  (format t "lhs: ~A rhs: ~A rem: ~A~%" lhs rhs rem)
   (if (null needed)
       ;; If nothing needed, return parse and upward extensions
       (let ((parse (make-parse :tree (new-tree lhs sem rhs) :rem rem)))
@@ -622,15 +626,29 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
         (when (second verb) (setf (end-time int) (list preposition obj)))
         int))))
 
-(defun sem-spatial (subject int)
-  (setf (subject int) subject)
+(defun sem-spatial-relative (subject int)
+  (setf (subject int) (first subject))
+  (setf (subject-modifier int) (second subject))
   (when (spatial-template int)
     (setf (spatial-template int)
           (mapcar #'(lambda (x) (substitute subject 'subject x :test #'equals)) (spatial-template int))))
   int)
 
-(defun sem-spatial-def (the subject int)
-  (sem-spatial subject int))
+(defun sem-spatial-np (subject)
+  "bare noun, e.g., 'ball'"
+  (list subject))
+
+(defun sem-spatial-np-def (the subject)
+  "noun-phrase with a definite article, e.g., 'the ball'"
+  (list subject))
+
+(defun sem-spatial-adjnp (modifier subject)
+  "adjectival noun-phrase with a definite article, e.g., 'the leftmost ball'"
+  (list subject modifier))
+
+(defun sem-spatial-adjnp-def (the modifier subject)
+  "adjectival noun-phrase with a definite article, e.g., 'the leftmost ball'"
+  (list subject modifier))
 
 (defun sem-spatial-vp (is int)
   (setf (spatial-distance int) :infinity)
@@ -639,47 +657,29 @@ v.   Universality t = The quantifier is a universal one, such as 'all' or 'none'
 (defun sem-spatial-adv-vp (is directly int)
   (if (member (spatial-relation int) '(:equal :not-equal))
       (setf (spatial-distance int) :infinity)
-    (setf (spatial-distance int) 1))
+    (setf (spatial-distance int) 2))
   int)
 
 (defun sem-spatial-horizontal (to the1 relation of obj)
-  (make-instance 'sp-intension :obj obj :rel relation :dim :left-right :temp nil :dist nil))
-
-(defun sem-spatial-horizontal-det (to the1 relation of the2 obj)
-  (sem-spatial-horizontal to the1 relation of obj))
+  (make-instance 'sp-intension :subj nil :subj-mod nil :obj (first obj) :obj-mod (second obj) :rel relation :dim :left-right :temp nil :dist nil))
 
 (defun sem-spatial-vertical (relation obj)
   (if (listp relation)
-      (make-instance 'sp-intension :obj obj :rel (first relation) :dim :behind-front :temp nil :dist nil)
-  (make-instance 'sp-intension :obj obj :rel relation :dim :below-above :temp nil :dist nil)))
+      (make-instance 'sp-intension :subj nil :subj-mod nil :obj (first obj) :obj-mod (second obj) :rel (first relation) :dim :behind-front :temp nil :dist nil)
+  (make-instance 'sp-intension :subj nil :subj-mod nil :obj (first obj) :obj-mod (second obj) :rel relation :dim :below-above :temp nil :dist nil)))
 
-(defun sem-spatial-vertical-det (relation the1 obj)
-  (sem-spatial-vertical relation obj))
-
-(defun sem-spatial-depth (in relation of obj)
-  (make-instance 'sp-intension :obj obj :rel relation :dim :behind-front :temp nil :dist nil))
-
-(defun sem-spatial-depth-det (in relation of the1 obj)
-  (sem-spatial-depth in relation of obj))
+(defun sem-spatial-saggital (in relation of obj)
+  (make-instance 'sp-intension :subj nil :subj-mod nil :obj (first obj) :obj-mod (second obj) :rel relation :dim :behind-front :temp nil :dist nil))
 
 (defun sem-spatial-between (in between obj1 and obj2)
-  (make-instance 'sp-intension :obj (list obj1 obj2) :rel nil :dim nil :dist nil :temp (list (list obj1 'subject obj2)
-                                                                                             (list obj2 'subject obj1))))
-
-(defun sem-spatial-between-det (in between the1 obj1 and the2 obj2)
-  (sem-spatial-between in between obj1 and obj2))
-
+  (make-instance 'sp-intension :subj nil :subj-mod nil :obj (list (first obj1) (first obj2)) :obj-mod (list (second obj1) (second obj2))
+                 :rel nil :dim nil :dist nil :temp (list (list (first obj1) 'subject (first obj2))
+                                                         (list (first obj2) 'subject (first obj1)))))
 (defun sem-spatial-same (in the same place as obj)
-  (make-instance 'sp-intension :obj obj :rel :equal :dim nil :temp nil :dist nil))
-
-(defun sem-spatial-same-det (in the1 same place as the2 obj)
-  (sem-spatial-same in the1 same place as obj))
+  (make-instance 'sp-intension :subj nil :subj-mod nil :obj (first obj) :obj-mod (second obj) :rel :equal :dim nil :temp nil :dist nil))
 
 (defun sem-spatial-different (in a different place as obj)
-  (make-instance 'sp-intension :obj obj :rel :not-equal :dim nil :temp nil :dist nil))
-
-(defun sem-spatial-different-det (in a different place as the obj)
-  (sem-spatial-different in a different place as obj))
+  (make-instance 'sp-intension :subj nil :subj-mod nil :obj (first obj) :obj-mod (second obj) :rel :not-equal :dim nil :temp nil :dist nil))
 
 (defun sem-causal (first relation second)
   (case relation
@@ -1566,3 +1566,30 @@ Current parts of speech include
 (defvar Min-c-b (p '(The minority of C are not B)))
 (defvar Min-a-c (p '(The minority of A are not C)))
 (defvar Min-c-a (p '(The minority of C are not A)))
+
+; ---------------------------------------------------------------------------------
+; Distribution statement
+; ----------------------
+; Approved for public release: distribution unlimited. Redistributions of source and
+; binary forms, with or without modification, are permitted if redistributions retain
+; the above distribution statement and the following disclaimer.
+; 
+; Disclaimer
+; ----------
+; The software is supplied "as is" without warranty of any kind.
+;
+; As the owner of the software, the United States, the United States Department of
+; Defense, and their employees: (1) disclaim any warranties, express or implied,
+; including but not limited to any implied warranties of merchantability, fitness
+; for a particular purpose, title or non-infringement, (2) do not assume any legal
+; liability or responsibility for the accuracy, completeness, or usefulness of the
+; software, (3) do not represent that use of the software would not infringe
+; privately owned rights, (4) do not warrant that the software will function
+; uninterrupted, that it is error-free or that any errors will be corrected.
+;
+; Portions of the software resulted from work developed by or for the U.S.
+; Government subject to the following license: the Government is granted for itself
+; and others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+; license in this computer software to reproduce, prepare derivative works, to
+; perform or display any portion of that work, and to permit others to do so for
+; Government purposes.

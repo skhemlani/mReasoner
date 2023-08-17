@@ -32,6 +32,7 @@
 
 (defmethod execute-search-strategies ((conclusion null-intension) (model model) (strategies list) &key (validate-true nil))
   "System 2 does not engage in counterexample search for null-intensions"
+  (declare (ignore validate-true))
   nil)
 
 (defmethod execute-search-strategies ((conclusion intension) (model model) (strategies list) &key (validate-true nil))
@@ -1242,3 +1243,30 @@ Then, iterate through the list to get each possible pair of individuals.
 (defmethod distance ((mod1 t-model) (mod2 t-model) &key (minimize t))
   "Need to create Levenshtein distance fn for temporal models"
   0)
+
+; ---------------------------------------------------------------------------------
+; Distribution statement
+; ----------------------
+; Approved for public release: distribution unlimited. Redistributions of source and
+; binary forms, with or without modification, are permitted if redistributions retain
+; the above distribution statement and the following disclaimer.
+; 
+; Disclaimer
+; ----------
+; The software is supplied "as is" without warranty of any kind.
+;
+; As the owner of the software, the United States, the United States Department of
+; Defense, and their employees: (1) disclaim any warranties, express or implied,
+; including but not limited to any implied warranties of merchantability, fitness
+; for a particular purpose, title or non-infringement, (2) do not assume any legal
+; liability or responsibility for the accuracy, completeness, or usefulness of the
+; software, (3) do not represent that use of the software would not infringe
+; privately owned rights, (4) do not warrant that the software will function
+; uninterrupted, that it is error-free or that any errors will be corrected.
+;
+; Portions of the software resulted from work developed by or for the U.S.
+; Government subject to the following license: the Government is granted for itself
+; and others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+; license in this computer software to reproduce, prepare derivative works, to
+; perform or display any portion of that work, and to permit others to do so for
+; Government purposes.

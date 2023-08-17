@@ -159,6 +159,9 @@
       (read-sequence file-contents file-stream)
       file-contents)))
 
+(defun manhattan-distance (x1 y1 x2 y2)
+  (+ (abs (- x2 x1)) (abs (- y2 y1))))
+
 ; ---------------------------------------------------------------------------------
 ; Section 2.2: Printing functions
 ; ---------------------------------------------------------------------------------
@@ -206,8 +209,9 @@
 ; Printing for q-models ----------------------------------------------------------
 
 (defmethod print-model ((model q-model) &key (template nil) (output nil) (separator "~%"))
-"prints a q-model applies print-indiv to each individual, making new line 
-first, print-indiv prints properties in order of template"
+  "prints a q-model applies print-indiv to each individual, making new line 
+   first, print-indiv prints properties in order of template"
+  (declare (ignore template))
   (let* ((indivs (individuals model)) 
          (template (or template (find-properties indivs))))
     (dolist (indiv indivs)
@@ -334,7 +338,7 @@ first, print-indiv prints properties in order of template"
   "Serialize model for sp-models"
   (let ((entities (entities model))
         transposed-entities)
-    (dotimes (i (length (dimensions model)))
+    (dotimes (i (length (first entities)))
       (push (mapcar #'(lambda (x) (nth i x)) entities) transposed-entities)) 
     
     (format nil "~{~a~^ ~}" (serialize-sp-grid transposed-entities))))
@@ -421,7 +425,7 @@ first, print-indiv prints properties in order of template"
   (equal 'end (second event-marker)))
 
 (defun establish-buffer (marker events)
-  (let ((buffer " ") event-marker)
+  (let ((buffer " ") event-marker buffer-length)
     (dotimes (e (length events))
         (setf event-marker (first (remove-if-not #'(lambda (x) (member (nth e events) x)) marker)))
         (setf buffer-length (length (format nil "~A" (first event-marker))))
@@ -464,9 +468,10 @@ first, print-indiv prints properties in order of template"
               (format (or output t) "~A" x)) tracks))
 
 (defmethod print-model ((model t-model) &key (template nil) (output nil) (separator "~%"))
+  (declare (ignore template))
   (let* ((events   (find-events (moments model)))
-         (tracks   (mapcar #'(lambda (x) (make-string 0)) events))
-         event-marker buffer buffer-length)
+         (tracks   (mapcar #'(lambda (x) (ignore x) (make-string 0)) events))
+         buffer)
     (dolist (marker (moments model))
       (setf buffer (establish-buffer marker events))
       (dolist (event-marker marker)
@@ -496,12 +501,14 @@ first, print-indiv prints properties in order of template"
     (format nil "~{~a~^+~}" (mapcar #'symbol-name thing))))
 
 (defmethod print-model ((model sp-model) &key (template nil) (output nil) (separator "~%"))
+  (declare (ignore template))
   (case (length (dimensions model))
     (1 (format (or output t) "~{~a~^  ~}" (mapcar #'print-thing-or-place (things model))))
     (2 (print-2d-model model :template template :output output :separator separator))
     (3 (error "print-model is not implemented for 3D models yet."))))
 
 (defmethod print-2d-model ((model sp-model) &key (template nil) (output nil) (separator "~%")) ;; 2d models only!
+  (declare (ignore template))
   (let* ((things       (reverse (transpose-list (things model))))
          (columns      (length (first things)))
          (rows         (length things))
@@ -521,6 +528,7 @@ first, print-indiv prints properties in order of template"
 
 (defmethod print-model ((model s-model) &key (template nil) (output nil) (separator "~%") (print-footnotes nil))
   "prints a set of models properly aligned"
+  (declare (ignore template))
   (let* ((possibilities (remove-duplicates (possibilities model) :test #'equals))
          (footnotes (mapcar #'footnote (possibilities model)))
          (template (make-print-template (mapcar #'possibilities possibilities))))
@@ -788,3 +796,30 @@ stopped."
   form)
 
 #+ccl (pushnew :split-sequence *features*)
+
+; ---------------------------------------------------------------------------------
+; Distribution statement
+; ----------------------
+; Approved for public release: distribution unlimited. Redistributions of source and
+; binary forms, with or without modification, are permitted if redistributions retain
+; the above distribution statement and the following disclaimer.
+; 
+; Disclaimer
+; ----------
+; The software is supplied "as is" without warranty of any kind.
+;
+; As the owner of the software, the United States, the United States Department of
+; Defense, and their employees: (1) disclaim any warranties, express or implied,
+; including but not limited to any implied warranties of merchantability, fitness
+; for a particular purpose, title or non-infringement, (2) do not assume any legal
+; liability or responsibility for the accuracy, completeness, or usefulness of the
+; software, (3) do not represent that use of the software would not infringe
+; privately owned rights, (4) do not warrant that the software will function
+; uninterrupted, that it is error-free or that any errors will be corrected.
+;
+; Portions of the software resulted from work developed by or for the U.S.
+; Government subject to the following license: the Government is granted for itself
+; and others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide
+; license in this computer software to reproduce, prepare derivative works, to
+; perform or display any portion of that work, and to permit others to do so for
+; Government purposes.
