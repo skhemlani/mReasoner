@@ -1,0 +1,4062 @@
+{
+  "program": "mReasoner 2.0 (commit 637a162)",
+  "implementation": "SBCL 2.2.9.debian",
+  "seed": 3,
+  "fixes": null,
+  "parameters": {
+    "stochastic": false,
+    "lambda": 4.0,
+    "sigma": 0.0,
+    "epsilon": 0.0,
+    "kappa": 0.0
+  },
+  "syllogisms": [
+    {
+      "id": "syllogism-01",
+      "figure": 1,
+      "premises": [
+        "Aab",
+        "Abc"
+      ],
+      "stored_2011": [
+        "Aac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Aac"
+        ],
+        "system2": [
+          "Aac"
+        ],
+        "prediction": [
+          "Aac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Aac"
+        ],
+        "system2": [
+          "Aac"
+        ],
+        "prediction": [
+          "Aac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-02",
+      "figure": 1,
+      "premises": [
+        "Aab",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "Iac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-03",
+      "figure": 1,
+      "premises": [
+        "Aab",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "Eac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "Eac"
+        ],
+        "prediction": [
+          "Eac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "Eac"
+        ],
+        "prediction": [
+          "Eac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-04",
+      "figure": 1,
+      "premises": [
+        "Aab",
+        "Obc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-05",
+      "figure": 1,
+      "premises": [
+        "Iab",
+        "Abc"
+      ],
+      "stored_2011": [
+        "Iac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [
+          "Iac"
+        ],
+        "prediction": [
+          "Iac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [
+          "Iac"
+        ],
+        "prediction": [
+          "Iac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-06",
+      "figure": 1,
+      "premises": [
+        "Iab",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "Iac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-07",
+      "figure": 1,
+      "premises": [
+        "Iab",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-08",
+      "figure": 1,
+      "premises": [
+        "Iab",
+        "Obc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-09",
+      "figure": 1,
+      "premises": [
+        "Eab",
+        "Abc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": false
+      }
+    },
+    {
+      "id": "syllogism-10",
+      "figure": 1,
+      "premises": [
+        "Eab",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": false
+      }
+    },
+    {
+      "id": "syllogism-11",
+      "figure": 1,
+      "premises": [
+        "Eab",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-12",
+      "figure": 1,
+      "premises": [
+        "Eab",
+        "Obc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-13",
+      "figure": 1,
+      "premises": [
+        "Oab",
+        "Abc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-14",
+      "figure": 1,
+      "premises": [
+        "Oab",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-15",
+      "figure": 1,
+      "premises": [
+        "Oab",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-16",
+      "figure": 1,
+      "premises": [
+        "Oab",
+        "Obc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-17",
+      "figure": 2,
+      "premises": [
+        "Aba",
+        "Acb"
+      ],
+      "stored_2011": [
+        "Aac",
+        "Aca",
+        "Iac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Aac",
+          "Aca"
+        ],
+        "system2": [
+          "Aca",
+          "NVC"
+        ],
+        "prediction": [
+          "Aac",
+          "Aca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Aac",
+          "Aca"
+        ],
+        "system2": [
+          "Aca",
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Aac",
+          "Aca",
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": false
+      }
+    },
+    {
+      "id": "syllogism-18",
+      "figure": 2,
+      "premises": [
+        "Aba",
+        "Icb"
+      ],
+      "stored_2011": [
+        "Iac",
+        "Ica"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-19",
+      "figure": 2,
+      "premises": [
+        "Aba",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-20",
+      "figure": 2,
+      "premises": [
+        "Aba",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-21",
+      "figure": 2,
+      "premises": [
+        "Iba",
+        "Acb"
+      ],
+      "stored_2011": [
+        "Iac",
+        "Ica",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-22",
+      "figure": 2,
+      "premises": [
+        "Iba",
+        "Icb"
+      ],
+      "stored_2011": [
+        "Iac",
+        "Ica",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-23",
+      "figure": 2,
+      "premises": [
+        "Iba",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-24",
+      "figure": 2,
+      "premises": [
+        "Iba",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-25",
+      "figure": 2,
+      "premises": [
+        "Eba",
+        "Acb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Eac",
+          "Eca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Eac",
+          "Eca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-26",
+      "figure": 2,
+      "premises": [
+        "Eba",
+        "Icb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-27",
+      "figure": 2,
+      "premises": [
+        "Eba",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-28",
+      "figure": 2,
+      "premises": [
+        "Eba",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-29",
+      "figure": 2,
+      "premises": [
+        "Oba",
+        "Acb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-30",
+      "figure": 2,
+      "premises": [
+        "Oba",
+        "Icb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-31",
+      "figure": 2,
+      "premises": [
+        "Oba",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-32",
+      "figure": 2,
+      "premises": [
+        "Oba",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-33",
+      "figure": 3,
+      "premises": [
+        "Aab",
+        "Acb"
+      ],
+      "stored_2011": [
+        "Aac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Aac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Aac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Aac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Aac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-34",
+      "figure": 3,
+      "premises": [
+        "Aab",
+        "Icb"
+      ],
+      "stored_2011": [
+        "Iac",
+        "Ica",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-35",
+      "figure": 3,
+      "premises": [
+        "Aab",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Eac",
+          "Eca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Eac",
+          "Eca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-36",
+      "figure": 3,
+      "premises": [
+        "Aab",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-37",
+      "figure": 3,
+      "premises": [
+        "Iab",
+        "Acb"
+      ],
+      "stored_2011": [
+        "Iac",
+        "Ica",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-38",
+      "figure": 3,
+      "premises": [
+        "Iab",
+        "Icb"
+      ],
+      "stored_2011": [
+        "Iac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-39",
+      "figure": 3,
+      "premises": [
+        "Iab",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-40",
+      "figure": 3,
+      "premises": [
+        "Iab",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-41",
+      "figure": 3,
+      "premises": [
+        "Eab",
+        "Acb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Eac",
+          "Eca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Eac",
+          "Eca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-42",
+      "figure": 3,
+      "premises": [
+        "Eab",
+        "Icb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-43",
+      "figure": 3,
+      "premises": [
+        "Eab",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-44",
+      "figure": 3,
+      "premises": [
+        "Eab",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-45",
+      "figure": 3,
+      "premises": [
+        "Oab",
+        "Acb"
+      ],
+      "stored_2011": [
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-46",
+      "figure": 3,
+      "premises": [
+        "Oab",
+        "Icb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-47",
+      "figure": 3,
+      "premises": [
+        "Oab",
+        "Ecb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-48",
+      "figure": 3,
+      "premises": [
+        "Oab",
+        "Ocb"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-49",
+      "figure": 4,
+      "premises": [
+        "Aba",
+        "Abc"
+      ],
+      "stored_2011": [
+        "Aac",
+        "Iac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Aac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Aac",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Aac"
+        ],
+        "system2": [
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Aac",
+          "Iac",
+          "Ica",
+          "NVC"
+        ],
+        "matches_stored": false
+      }
+    },
+    {
+      "id": "syllogism-50",
+      "figure": 4,
+      "premises": [
+        "Aba",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "Iac",
+        "Ica"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-51",
+      "figure": 4,
+      "premises": [
+        "Aba",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-52",
+      "figure": 4,
+      "premises": [
+        "Aba",
+        "Obc"
+      ],
+      "stored_2011": [
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-53",
+      "figure": 4,
+      "premises": [
+        "Iba",
+        "Abc"
+      ],
+      "stored_2011": [
+        "Iac",
+        "Ica"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac",
+          "Ica"
+        ],
+        "system2": [
+          "Iac",
+          "Ica"
+        ],
+        "prediction": [
+          "Iac",
+          "Ica"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-54",
+      "figure": 4,
+      "premises": [
+        "Iba",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "Iac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Iac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Iac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-55",
+      "figure": 4,
+      "premises": [
+        "Iba",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oac"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": false
+      }
+    },
+    {
+      "id": "syllogism-56",
+      "figure": 4,
+      "premises": [
+        "Iba",
+        "Obc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-57",
+      "figure": 4,
+      "premises": [
+        "Eba",
+        "Abc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "Eca",
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-58",
+      "figure": 4,
+      "premises": [
+        "Eba",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC"
+        ],
+        "matches_stored": false
+      },
+      "omega_1": {
+        "system1": [
+          "Eac",
+          "Eca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Eac",
+          "Eca",
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": false
+      }
+    },
+    {
+      "id": "syllogism-59",
+      "figure": 4,
+      "premises": [
+        "Eba",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "Eac",
+        "NVC"
+      ],
+      "omega_0": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Eac"
+        ],
+        "system2": [],
+        "prediction": [
+          "Eac",
+          "NVC"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-60",
+      "figure": 4,
+      "premises": [
+        "Eba",
+        "Obc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-61",
+      "figure": 4,
+      "premises": [
+        "Oba",
+        "Abc"
+      ],
+      "stored_2011": [
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "Oca"
+        ],
+        "prediction": [
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-62",
+      "figure": 4,
+      "premises": [
+        "Oba",
+        "Ibc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-63",
+      "figure": 4,
+      "premises": [
+        "Oba",
+        "Ebc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oca"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oca"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oca"
+        ],
+        "matches_stored": true
+      }
+    },
+    {
+      "id": "syllogism-64",
+      "figure": 4,
+      "premises": [
+        "Oba",
+        "Obc"
+      ],
+      "stored_2011": [
+        "NVC",
+        "Oac"
+      ],
+      "omega_0": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [
+          "NVC"
+        ],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      },
+      "omega_1": {
+        "system1": [
+          "Oac"
+        ],
+        "system2": [],
+        "prediction": [
+          "NVC",
+          "Oac"
+        ],
+        "matches_stored": true
+      }
+    }
+  ],
+  "immediate": [
+    {
+      "id": "immediate-01",
+      "premise": "Aab",
+      "conclusion": "Aab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-02",
+      "premise": "Aab",
+      "conclusion": "Iab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-03",
+      "premise": "Aab",
+      "conclusion": "Eab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-04",
+      "premise": "Aab",
+      "conclusion": "Oab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-05",
+      "premise": "Iab",
+      "conclusion": "Aab",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-06",
+      "premise": "Iab",
+      "conclusion": "Iab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-07",
+      "premise": "Iab",
+      "conclusion": "Eab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-08",
+      "premise": "Iab",
+      "conclusion": "Oab",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-09",
+      "premise": "Eab",
+      "conclusion": "Aab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-10",
+      "premise": "Eab",
+      "conclusion": "Iab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-11",
+      "premise": "Eab",
+      "conclusion": "Eab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-12",
+      "premise": "Eab",
+      "conclusion": "Oab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-13",
+      "premise": "Oab",
+      "conclusion": "Aab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-14",
+      "premise": "Oab",
+      "conclusion": "Iab",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-15",
+      "premise": "Oab",
+      "conclusion": "Eab",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-16",
+      "premise": "Oab",
+      "conclusion": "Oab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-17",
+      "premise": "Aab",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-18",
+      "premise": "Aab",
+      "conclusion": "Iba",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-19",
+      "premise": "Aab",
+      "conclusion": "Eba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-20",
+      "premise": "Aab",
+      "conclusion": "Oba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-21",
+      "premise": "Iab",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-22",
+      "premise": "Iab",
+      "conclusion": "Iba",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-23",
+      "premise": "Iab",
+      "conclusion": "Eba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-24",
+      "premise": "Iab",
+      "conclusion": "Oba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-25",
+      "premise": "Eab",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-26",
+      "premise": "Eab",
+      "conclusion": "Iba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-27",
+      "premise": "Eab",
+      "conclusion": "Eba",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-28",
+      "premise": "Eab",
+      "conclusion": "Oba",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-29",
+      "premise": "Oab",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-30",
+      "premise": "Oab",
+      "conclusion": "Iba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-31",
+      "premise": "Oab",
+      "conclusion": "Eba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "immediate-32",
+      "premise": "Oab",
+      "conclusion": "Oba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    }
+  ],
+  "immediate_most": [
+    {
+      "id": "most-01",
+      "premise": "Aab",
+      "conclusion": "Aab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-02",
+      "premise": "Aab",
+      "conclusion": "Mab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-03",
+      "premise": "Aab",
+      "conclusion": "Eab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-04",
+      "premise": "Aab",
+      "conclusion": "Ma-b",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-05",
+      "premise": "Mab",
+      "conclusion": "Aab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-06",
+      "premise": "Mab",
+      "conclusion": "Mab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-07",
+      "premise": "Mab",
+      "conclusion": "Eab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-08",
+      "premise": "Mab",
+      "conclusion": "Ma-b",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-09",
+      "premise": "Eab",
+      "conclusion": "Aab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-10",
+      "premise": "Eab",
+      "conclusion": "Mab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-11",
+      "premise": "Eab",
+      "conclusion": "Eab",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-12",
+      "premise": "Eab",
+      "conclusion": "Ma-b",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-13",
+      "premise": "Ma-b",
+      "conclusion": "Aab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-14",
+      "premise": "Ma-b",
+      "conclusion": "Mab",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-15",
+      "premise": "Ma-b",
+      "conclusion": "Eab",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": false
+    },
+    {
+      "id": "most-16",
+      "premise": "Ma-b",
+      "conclusion": "Ma-b",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-17",
+      "premise": "Aab",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-18",
+      "premise": "Aab",
+      "conclusion": "Mba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-19",
+      "premise": "Aab",
+      "conclusion": "Eba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-20",
+      "premise": "Aab",
+      "conclusion": "Mb-a",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-21",
+      "premise": "Mab",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-22",
+      "premise": "Mab",
+      "conclusion": "Mba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-23",
+      "premise": "Mab",
+      "conclusion": "Eba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-24",
+      "premise": "Mab",
+      "conclusion": "Mb-a",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-25",
+      "premise": "Eab",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-26",
+      "premise": "Eab",
+      "conclusion": "Mba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-27",
+      "premise": "Eab",
+      "conclusion": "Eba",
+      "necessary": "Y",
+      "possible": "Y",
+      "stored": [
+        "Y",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-28",
+      "premise": "Eab",
+      "conclusion": "Mb-a",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-29",
+      "premise": "Ma-b",
+      "conclusion": "Aba",
+      "necessary": "N",
+      "possible": "Y",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-30",
+      "premise": "Ma-b",
+      "conclusion": "Mba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": false
+    },
+    {
+      "id": "most-31",
+      "premise": "Ma-b",
+      "conclusion": "Eba",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "N"
+      ],
+      "matches_stored": true
+    },
+    {
+      "id": "most-32",
+      "premise": "Ma-b",
+      "conclusion": "Mb-a",
+      "necessary": "N",
+      "possible": "N",
+      "stored": [
+        "N",
+        "Y"
+      ],
+      "matches_stored": false
+    }
+  ],
+  "consistency": [
+    {
+      "id": "consistency-01",
+      "premises": [
+        "Aab",
+        "Aab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-02",
+      "premises": [
+        "Aab",
+        "Iab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-03",
+      "premises": [
+        "Aab",
+        "Eab"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-04",
+      "premises": [
+        "Aab",
+        "Oab"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-05",
+      "premises": [
+        "Iab",
+        "Aab"
+      ],
+      "system1": "N",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-06",
+      "premises": [
+        "Iab",
+        "Iab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-07",
+      "premises": [
+        "Iab",
+        "Eab"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-08",
+      "premises": [
+        "Iab",
+        "Oab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-09",
+      "premises": [
+        "Eab",
+        "Aab"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-10",
+      "premises": [
+        "Eab",
+        "Iab"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-11",
+      "premises": [
+        "Eab",
+        "Eab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-12",
+      "premises": [
+        "Eab",
+        "Oab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-13",
+      "premises": [
+        "Oab",
+        "Aab"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-14",
+      "premises": [
+        "Oab",
+        "Iab"
+      ],
+      "system1": "N",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-15",
+      "premises": [
+        "Oab",
+        "Eab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-16",
+      "premises": [
+        "Oab",
+        "Oab"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-17",
+      "premises": [
+        "Aab",
+        "Aba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-18",
+      "premises": [
+        "Aab",
+        "Iba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-19",
+      "premises": [
+        "Aab",
+        "Eba"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-20",
+      "premises": [
+        "Aab",
+        "Oba"
+      ],
+      "system1": "N",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-21",
+      "premises": [
+        "Iab",
+        "Aba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-22",
+      "premises": [
+        "Iab",
+        "Iba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-23",
+      "premises": [
+        "Iab",
+        "Eba"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "N",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-24",
+      "premises": [
+        "Iab",
+        "Oba"
+      ],
+      "system1": "N",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-25",
+      "premises": [
+        "Eab",
+        "Aba"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "Y",
+      "matches_stored": false
+    },
+    {
+      "id": "consistency-26",
+      "premises": [
+        "Eab",
+        "Iba"
+      ],
+      "system1": "N",
+      "system2": "N",
+      "stored_2012": "Y",
+      "matches_stored": false
+    },
+    {
+      "id": "consistency-27",
+      "premises": [
+        "Eab",
+        "Eba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-28",
+      "premises": [
+        "Eab",
+        "Oba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-29",
+      "premises": [
+        "Oab",
+        "Aba"
+      ],
+      "system1": "N",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-30",
+      "premises": [
+        "Oab",
+        "Iba"
+      ],
+      "system1": "N",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-31",
+      "premises": [
+        "Oab",
+        "Eba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    },
+    {
+      "id": "consistency-32",
+      "premises": [
+        "Oab",
+        "Oba"
+      ],
+      "system1": "Y",
+      "system2": "Y",
+      "stored_2012": "Y",
+      "matches_stored": true
+    }
+  ],
+  "models": [
+    {
+      "id": "quantified-1",
+      "premises": [
+        "All A are B",
+        "Some B are C"
+      ],
+      "intensions": [
+        "Aab",
+        "Ibc"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n   A   B   C\n   A   B   C\n   A   B\n   A   B\n",
+      "error": null
+    },
+    {
+      "id": "quantified-2",
+      "premises": [
+        "No A are B"
+      ],
+      "intensions": [
+        "Eab"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n   A  ¬B\n   A  ¬B\n   A  ¬B\n   A  ¬B\n       B\n",
+      "error": null
+    },
+    {
+      "id": "quantified-3",
+      "premises": [
+        "Some A are not B"
+      ],
+      "intensions": [
+        "Oab"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n   A  ¬B\n   A  ¬B\n   A\n   A\n       B\n",
+      "error": null
+    },
+    {
+      "id": "quantified-4",
+      "premises": [
+        "All A are B",
+        "All B are C"
+      ],
+      "intensions": [
+        "Aab",
+        "Abc"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n   A   B   C\n   A   B   C\n   A   B   C\n   A   B   C\n",
+      "error": null
+    },
+    {
+      "id": "quantified-5",
+      "premises": [
+        "Most A are B"
+      ],
+      "intensions": [
+        "Mab"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n   A   B\n   A   B\n   A   B\n   A\n",
+      "error": null
+    },
+    {
+      "id": "temporal-1",
+      "premises": [
+        "A happened during B",
+        "C happened after B",
+        "D happened after C"
+      ],
+      "intensions": [
+        "aDb",
+        "cAb",
+        "dAc"
+      ],
+      "n_models": 1,
+      "satisfies_premises": false,
+      "model_text": "\n[B       ]\n   C D A  \n",
+      "error": null
+    },
+    {
+      "id": "temporal-2",
+      "premises": [
+        "A happened before B",
+        "B happened before C"
+      ],
+      "intensions": [
+        "aBb",
+        "bBc"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n A B C\n",
+      "error": null
+    },
+    {
+      "id": "temporal-3",
+      "premises": [
+        "A happened during B",
+        "C happened after B"
+      ],
+      "intensions": [
+        "aDb",
+        "cAb"
+      ],
+      "n_models": 1,
+      "satisfies_premises": false,
+      "model_text": "\n[B     ]\n   C A  \n",
+      "error": null
+    },
+    {
+      "id": "spatial-1",
+      "premises": [
+        "A is to the left of B",
+        "B is to the left of C",
+        "C is above D"
+      ],
+      "intensions": [
+        "left(a b)",
+        "left(b c)",
+        "above(c d)"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "A                B                C                \n                                  D                \n\n",
+      "error": null
+    },
+    {
+      "id": "spatial-2",
+      "premises": [
+        "A is to the left of B",
+        "C is to the right of B"
+      ],
+      "intensions": [
+        "left(a b)",
+        "right(c b)"
+      ],
+      "n_models": 1,
+      "satisfies_premises": "ERROR: The value NIL is not of type REAL",
+      "model_text": "A  B  C\n",
+      "error": null
+    },
+    {
+      "id": "sentential-1",
+      "premises": [
+        "A or B"
+      ],
+      "intensions": [
+        "(A or B)"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\nModel of: (A or B)\n\n    A         \n         B    \n    A    B    \n",
+      "error": null
+    },
+    {
+      "id": "sentential-2",
+      "premises": [
+        "A ore B"
+      ],
+      "intensions": [
+        "(A xor B)"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\nModel of: (A xor B)\n\n    A         \n         B    \n",
+      "error": null
+    },
+    {
+      "id": "sentential-3",
+      "premises": [
+        "if A then B"
+      ],
+      "intensions": [
+        "(A if B)"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\nModel of: (A if B)\n\n    A    B    \n",
+      "error": null
+    },
+    {
+      "id": "sentential-4",
+      "premises": [
+        "iff A then B"
+      ],
+      "intensions": [
+        "(A iff B)"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\nModel of: (A iff B)\n\n    A    B    \n  ¬ A  ¬ B    \n",
+      "error": null
+    },
+    {
+      "id": "sentential-5",
+      "premises": [
+        "A and B"
+      ],
+      "intensions": [
+        "(A and B)"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\nModel of: (A and B)\n\n    A    B    \n",
+      "error": null
+    },
+    {
+      "id": "sentential-6",
+      "premises": [
+        "not A"
+      ],
+      "intensions": [
+        "¬A"
+      ],
+      "n_models": null,
+      "satisfies_premises": null,
+      "model_text": "",
+      "error": "There is no applicable method for the generic function #<STANDARD-GENERIC-FUNCTION COMMON-LISP-USER::FOOTNOTE (1)> when called with arguments ((- A)). See also: The ANSI Standard, Section 7.6.6"
+    },
+    {
+      "id": "temporal-4",
+      "premises": [
+        "A happened before B",
+        "A happened before C"
+      ],
+      "intensions": [
+        "aBb",
+        "aBc"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n A B C\n",
+      "error": null
+    },
+    {
+      "id": "temporal-5",
+      "premises": [
+        "Ana happened before Beto",
+        "Ana happened before Carla"
+      ],
+      "intensions": [
+        "aBb",
+        "aBc"
+      ],
+      "n_models": null,
+      "satisfies_premises": null,
+      "model_text": "",
+      "error": "The bounding indices 0 and 9 are bad for a sequence of length 8. See also: The ANSI Standard, Glossary entry for \"bounding index designator\" The ANSI Standard, writeup for Issue SUBSEQ-OUT-OF-BOUNDS:IS-AN-ERROR"
+    },
+    {
+      "id": "temporal-6",
+      "premises": [
+        "Ana happened before Bob",
+        "Ana happened before Cid"
+      ],
+      "intensions": [
+        "aBb",
+        "aBc"
+      ],
+      "n_models": 1,
+      "satisfies_premises": true,
+      "model_text": "\n ANA   D\n   BOB  \n",
+      "error": null
+    }
+  ],
+  "tasks": [
+    {
+      "id": "temporal-necessary",
+      "premises": [
+        "A happened before B",
+        "B happened before C"
+      ],
+      "conclusion": "A happened before C",
+      "possible_s1": "Y",
+      "possible_s2": "Y",
+      "necessary_s1": "Y",
+      "necessary_s2": "Y"
+    },
+    {
+      "id": "temporal-possible",
+      "premises": [
+        "A happened before B",
+        "A happened before C"
+      ],
+      "conclusion": "B happened before C",
+      "possible_s1": "Y",
+      "possible_s2": "Y",
+      "necessary_s1": "Y",
+      "necessary_s2": "N"
+    },
+    {
+      "id": "spatial-necessary",
+      "premises": [
+        "A is to the left of B",
+        "B is to the left of C"
+      ],
+      "conclusion": "A is to the left of C",
+      "possible_s1": "ERROR: The value NIL is not of type REAL",
+      "possible_s2": "ERROR: The value NIL is not of type REAL",
+      "necessary_s1": "ERROR: The value NIL is not of type REAL",
+      "necessary_s2": "ERROR: The value NIL is not of type REAL"
+    },
+    {
+      "id": "spatial-possible",
+      "premises": [
+        "A is to the left of B",
+        "A is to the left of C"
+      ],
+      "conclusion": "B is to the left of C",
+      "possible_s1": "ERROR: The value NIL is not of type REAL",
+      "possible_s2": "ERROR: The value NIL is not of type REAL",
+      "necessary_s1": "ERROR: The value NIL is not of type REAL",
+      "necessary_s2": "ERROR: The value NIL is not of type REAL"
+    },
+    {
+      "id": "spatial-2d-necessary",
+      "premises": [
+        "A is to the left of B",
+        "B is to the left of C",
+        "C is above D"
+      ],
+      "conclusion": "A is to the left of C",
+      "possible_s1": "Y",
+      "possible_s2": "Y",
+      "necessary_s1": "Y",
+      "necessary_s2": "ERROR: There is no applicable method for the generic function #<STANDARD-GENERIC-FUNCTION COMMON-LISP-USER::SEARCH-STRATEGIES (2)> when called with arguments (#<SP-MODEL {...}>). See also: The ANSI Standard, Section 7.6.6"
+    },
+    {
+      "id": "quantified-necessary",
+      "premises": [
+        "All A are B",
+        "All B are C"
+      ],
+      "conclusion": "Some A are C",
+      "possible_s1": "Y",
+      "possible_s2": "Y",
+      "necessary_s1": "Y",
+      "necessary_s2": "Y"
+    },
+    {
+      "id": "sentential-necessary",
+      "premises": [
+        "if A then B",
+        "A"
+      ],
+      "conclusion": "B",
+      "possible_s1": "Y",
+      "possible_s2": "Y",
+      "necessary_s1": "Y",
+      "necessary_s2": "ERROR: There is no applicable method for the generic function #<STANDARD-GENERIC-FUNCTION COMMON-LISP-USER::SEARCH-STRATEGIES (2)> when called with arguments (#<S-MODEL {...}>). See also: The ANSI Standard, Section 7.6.6"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-01-what-possibly-follows",
+      "function": "what-possibly-follows?",
+      "premises": [
+        "All A are B",
+        "All B are C"
+      ],
+      "output": {
+        "error": "The variable INVALID-CONCLUSIONS is unbound."
+      }
+    },
+    {
+      "id": "LIMIT-three-premises",
+      "function": "what-follows?",
+      "premises": [
+        "All A are B",
+        "All B are C",
+        "All C are D"
+      ],
+      "output": {
+        "error": "Too many premises to run heuristics."
+      }
+    },
+    {
+      "id": "LIMIT-temporal-conclusion",
+      "function": "what-follows?",
+      "premises": [
+        "A happened before B",
+        "B happened before C"
+      ],
+      "output": {
+        "error": "There is no applicable method for the generic function #<STANDARD-GENERIC-FUNCTION COMMON-LISP-USER::FORM-INITIAL-CONCLUSION (1)> when called with arguments (#<T-MODEL {...}>). See also: The ANSI Standard, Section 7.6.6"
+      }
+    },
+    {
+      "id": "BUG-02-combine",
+      "function": "interpret",
+      "premises": [
+        "All A are B",
+        "All C are D",
+        "All B are C"
+      ],
+      "output": {
+        "result": "1 model(s)",
+        "satisfies_premises": false,
+        "model_text": "\n   A   B   C\n   A   B   C\n   A   B   C\n   A   B   C"
+      }
+    },
+    {
+      "id": "BUG-05-temporal-during-after",
+      "function": "interpret",
+      "premises": [
+        "A happened during B",
+        "C happened after B"
+      ],
+      "output": {
+        "result": "1 model(s)",
+        "satisfies_premises": false,
+        "model_text": "\n[B     ]\n   C A  "
+      }
+    },
+    {
+      "id": "BUG-03-spatial-1d",
+      "function": "necessary?",
+      "premises": [
+        "A is to the left of B",
+        "B is to the left of C"
+      ],
+      "output": {
+        "error": "The value NIL is not of type REAL"
+      }
+    },
+    {
+      "id": "BUG-09-individual-interpret",
+      "function": "interpret",
+      "premises": [
+        "X is an A",
+        "All A are B"
+      ],
+      "output": {
+        "error": "The variable MOD is unbound."
+      }
+    },
+    {
+      "id": "BUG-09-individual-what-follows",
+      "function": "what-follows?",
+      "premises": [
+        "X is an A",
+        "All A are B"
+      ],
+      "output": {
+        "error": "The variable MOD is unbound."
+      }
+    }
+  ]
+}
