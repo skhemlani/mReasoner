@@ -11,9 +11,10 @@
 ;          Princeton University
 ;
 ; Contributors:
-;          Max Lotstein
-;          Marco Ragni
-;          Juan Manuel Goya
+;          Paul Emptoz (INRIA, France)
+;          Juan Manuel Goya (Universidad Tecnológica Nacional, Argentina) 
+;          Max Lotstein (ex-Netflix, USA)
+;          Marco Ragni (Technical University Chemnitz, Germany)
 ; ---------------------------------------------------------------------------------
 ;
 ; Distribution statement
@@ -179,10 +180,10 @@
    = 0.6, there's a 60% chance of compression.")
 
 (defparameter +distance+ :infinity
-  "Parameter that controls spatial distance between ")
+  "Parameter that controls spatial distance for how far the system can scan and locate referenced
+   objects.")
 
 (defun reset-system-parameters ()
-  (setf *stochastic* nil)
   (setf +size+ 4.0)
   (setf +search+ 0.0)
   (setf +atypicality+ 0.0)

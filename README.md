@@ -22,11 +22,119 @@ The implementation covers several reasoning domains:
 
 The repository is written entirely in Common Lisp. 
 
+## 1.1 Distribution and warranty statements
+
+### 1.1.1 Distribution statement
+
+Approved for public release: distribution unlimited. Redistributions of source and binary forms, with or without modification, are permitted if redistributions retain the above distribution statement and the following disclaimer.
+
+### 1.1.2 Warranty statement
+
+The software is supplied "as is" without warranty of any kind. As the owner of the software, the United States, the United States Department of Defense, and their employees: (1) disclaim any warranties, express or implied, including but not limited to any implied warranties of merchantability, fitness for a particular purpose, title or non-infringement, (2) do not assume any legal liability or responsibility for the accuracy, completeness, or usefulness of the software, (3) do not represent that use of the software would not infringe privately owned rights, (4) do not warrant that the software will function uninterrupted, that it is error-free or that any errors will be corrected.
+
+Portions of the software resulted from work developed by or for the U.S. Government subject to the following license: the Government is granted for itself and others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this computer software to reproduce, prepare derivative works, to perform or display any portion of that work, and to permit others to do so for Government purposes.
+
 ---
 
-# 2. Distribution and warranty statements
+# 2. Quick start
 
-Distribution and warranty statements are embedded in source-file [source-file](+mReasoner.lisp) comments.
+## 2.1 Parse a premise
+
+```lisp
+(defparameter *premise*
+  (parse '(all a are b)))
+```
+
+Under LispWorks or CCL, this can also be written as:
+
+```lisp
+(defparameter *premise*
+  (parse "All A are B"))
+```
+
+Inspect the result:
+
+```lisp
+(describe *premise*)
+```
+
+---
+
+## 2.2 Build a model
+
+```lisp
+(defparameter *models*
+  (interpret
+    '((all a are b)
+      (some b are c))))
+```
+
+If string parsing is supported by your implementation:
+
+```lisp
+(defparameter *models*
+  (interpret
+    '("All A are B"
+      "Some B are C")))
+```
+
+`interpret` returns a list of models, not a single model. Even when only one model is produced, retrieve it with:
+
+```lisp
+(first *models*)
+```
+
+The function parses any non-intension input, processes premises in order, and incrementally calls `build-model`.
+
+---
+
+## 2.3 Print a model
+
+```lisp
+(print-model (first *models*))
+```
+
+A quantified model may look conceptually like this:
+
+```text
+A   B
+A   B
+A   B   C
+```
+
+Each line represents an individual and each symbol represents one of that individual’s properties.
+
+---
+
+## 2.4 Draw a conclusion
+
+```lisp
+(infer
+  '((all a are b)
+    (some b are c))
+  :task #'what-follows?)
+```
+
+With strings where supported:
+
+```lisp
+(infer
+  '("All A are B"
+    "Some B are C")
+  :task #'what-follows?)
+```
+
+The result is a list of intensions. To render compact descriptions:
+
+```lisp
+(mapcar #'abbreviate
+        (infer
+          '((all a are b)
+            (some b are c))
+          :task #'what-follows?))
+```
+
+This example can produce conclusions corresponding to “Some A are C” and its converse “Some C are A.” ie "Ica" and "Iac" 
 
 ---
 
@@ -119,7 +227,7 @@ Typical behavior:
 - Weaken conclusions when configured to do so
 - Examine whether a proposition could be true or false in another model
 
-The global `+sigma+` parameter controls the probability that System 2 processing is invoked automatically. Passing an explicit `:system2` argument overrides the probabilistic default for many high-level operations.
+The global `search` parameter controls the probability that System 2 processing is invoked automatically. Passing an explicit `:system2` argument overrides the probabilistic default for many high-level operations.
 
 ---
 
@@ -425,106 +533,6 @@ jsown-master/
 ~~~
 
 When the `:jsown` feature is not already present and `jsown-master/load.lisp` exists, the loader loads it automatically. No separate package-manager installation is normally required for the bundled dependency.
-
-# 6. Quick start
-
-## 6.1 Parse a premise
-
-```lisp
-(defparameter *premise*
-  (parse '(all a are b)))
-```
-
-Under LispWorks or CCL, this can also be written as:
-
-```lisp
-(defparameter *premise*
-  (parse "All A are B"))
-```
-
-Inspect the result:
-
-```lisp
-(describe *premise*)
-```
-
----
-
-## 6.2 Build a model
-
-```lisp
-(defparameter *models*
-  (interpret
-    '((all a are b)
-      (some b are c))))
-```
-
-If string parsing is supported by your implementation:
-
-```lisp
-(defparameter *models*
-  (interpret
-    '("All A are B"
-      "Some B are C")))
-```
-
-`interpret` returns a list of models, not a single model. Even when only one model is produced, retrieve it with:
-
-```lisp
-(first *models*)
-```
-
-The function parses any non-intension input, processes premises in order, and incrementally calls `build-model`.
-
----
-
-## 6.3 Print a model
-
-```lisp
-(print-model (first *models*))
-```
-
-A quantified model may look conceptually like this:
-
-```text
-A   B
-A   B
-A   B   C
-```
-
-Each line represents an individual and each symbol represents one of that individual’s properties.
-
----
-
-## 6.4 Draw a conclusion
-
-```lisp
-(infer
-  '((all a are b)
-    (some b are c))
-  :task #'what-follows?)
-```
-
-With strings where supported:
-
-```lisp
-(infer
-  '("All A are B"
-    "Some B are C")
-  :task #'what-follows?)
-```
-
-The result is a list of intensions. To render compact descriptions:
-
-```lisp
-(mapcar #'abbreviate
-        (infer
-          '((all a are b)
-            (some b are c))
-          :task #'what-follows?))
-```
-
-This example can produce conclusions corresponding to “Some A are C” and its converse “Some C are A.” ie "Ica" and "Iac" 
 
 ---
 
@@ -1569,13 +1577,14 @@ mReasoner contains a probabilistic parameter system for simulating variation in 
 | `*stochastic*` | `t` at initial load | Enables or disables stochastic operation |
 | `*build-attempts*` | `1000` | Maximum stochastic model-building attempts |
 | `*exhaustive-search-depth*` | `7` | Depth bound for exhaustive search |
-| `+lambda+` | `4.0` | Controls generated model size |
-| `+sigma+` | `0.0` | Probability of invoking System 2 |
-| `+epsilon+` | `0.0` | Probability-related control for canonical construction |
-| `+omega+` | `0.0` | Probability of weakening a refuted conclusion |
-| `+kappa+` | `0.0` | Probability of spatial compression |
+| `+size+` | `4.0` | Controls generated model size |
+| `+search+` | `0.0` | Probability of invoking System 2 |
+| `+atypicality+` | `0.0` | Probability-related control for canonical construction |
+| `+revision+` | `0.0` | Probability of weakening a refuted conclusion |
+| `+compression+` | `0.0` | Probability of spatial compression |
+| `+distance+` | `:infinity` | How far the system can locate objects from a reference point |
 
-The source describes `+lambda+` as the parameter of a left-truncated Poisson distribution used to generate model cardinality. Values `0` and `1` are excluded by `generate-size`.
+The source describes `+size+` as the lambda parameter of a left-truncated Poisson distribution used to generate model cardinality. Values `0` and `1` are excluded by `generate-size`.
 
 ---
 
@@ -1583,11 +1592,12 @@ The source describes `+lambda+` as the parameter of a left-truncated Poisson dis
 
 ```lisp
 (set-system-parameters
-  :lambda 4.0
-  :sigma 0.5
-  :epsilon 0.1
-  :omega 0.75
-  :kappa 0.25)
+  :size 4.0
+  :atypicality 0.1
+  :search 0.5
+  :revision 0.75
+  :compression 0.25
+  :distance :infinity)
 ```
 
 This also enables stochastic mode.
@@ -1595,13 +1605,13 @@ This also enables stochastic mode.
 ### Parameter interpretation
 
 ```lisp
-:sigma 0.5
+:search 0.5
 ```
 
 means System 2 is selected with approximately 50% probability when the caller does not explicitly supply `:system2`.
 
 ```lisp
-:omega 0.75
+:revision 0.75
 ```
 
 means conclusion weakening is selected with approximately 75% probability when the relevant process is reached.
@@ -1617,15 +1627,14 @@ means conclusion weakening is selected with approximately 75% probability when t
 This sets:
 
 ```lisp
-*stochastic* => nil
-+lambda+      => 4.0
-+sigma+       => 0.0
-+epsilon+     => 0.0
-+omega+       => 0.0
-+kappa+       => 0.0
+*stochastic*  => nil
++sizea+       => 4.0
++search+      => 0.0
++atypicality+ => 0.0
++revision+    => 0.0
++compression+ => 0.0
++distance+    => :infinity
 ```
-
-Note that resetting disables stochastic mode, whereas the initial declaration of `*stochastic*` in the loader is true.
 
 ---
 
@@ -2202,7 +2211,7 @@ Although the loader includes branches for several implementations, parts of the 
 
 In particular:
 
-- String tokenization in `parse` is explicitly implemented for LispWorks and CCL.
+- String tokenization in `parse` is explicitly implemented for LispWorks, CCL, and SBCL.
 - LispWorks has dedicated system and GUI integration.
 - Path handling differs by implementation.
 - Direct token lists are generally the safest portable parser input.
@@ -2239,11 +2248,12 @@ Configuration and tracing use global variables, including:
 *stochastic*
 *build-attempts*
 *exhaustive-search-depth*
-+lambda+
-+sigma+
-+epsilon+
-+omega+
-+kappa+
++size+
++search+
++atypicality+
++revision+
++compression+
++distance+
 *mR-interface*
 ```
 
@@ -2360,6 +2370,8 @@ You may also bind or initialize Common Lisp’s `*random-state*` according to yo
 
 ### References
 
+* Khemlani, S., Bio, B., & Trafton, J.G. (2026). An integrated cognitive model of visuospatial relation tracking. In Proceedings of the International Conference on Cognitive Modeling 2026. [PDF](https://modeltheory.org/papers/2026visuospatial-relation-tracking.pdf)
+* Johnson-Laird, P.N., & Khemlani, S. (2023). Mental models and the algorithms of deduction. In R. Sun (Ed.), Cambridge Handbook of Computational Cognitive Sciences. [PDF](https://modeltheory.org/papers/2020algorithms-of-deduction.pdf)
 * Khemlani, S., & Johnson-Laird, P.N. (2022). Reasoning about properties: A computational theory. Manuscript in press at Psychological Review. [PDF](https://modeltheory.org/papers/2021mReasoner.pdf)
 * Khemlani, S., Byrne, R.M.J., & Johnson-Laird, P.N. (2018). Facts and possibilities: A model-based theory of sentential reasoning. Cognitive Science. [PDF](https://modeltheory.org/papers/2018sentential-reasoning.pdf)
 * Johnson-Laird, P. N., Khemlani, S., & Goodwin, G.P. (2015). Logic, probability, and human reasoning. Trends in Cognitive Sciences, 19, 201-214. [PDF](https://modeltheory.org/papers/2015logic-prob-reasoning.pdf)
