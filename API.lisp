@@ -968,7 +968,9 @@ It assumes that individuals will be properly formed (ie, no repeat properties).
 (defmethod add-footnote ((model model) (new-intension intension))
   "DESTRUCTIVE
    Takes a model and an intension and updates the footnote in the model."
-  (setf (footnote model) (append (footnote model) (list (copy-class-instance new-intension))))
+  (setf (footnote model) (remove-duplicates
+                          (append (footnote model) (list (copy-class-instance new-intension)))
+                          :test #'equals))
   model)
 
 (defmethod is-possible (modal-status)

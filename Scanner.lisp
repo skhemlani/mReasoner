@@ -262,30 +262,34 @@
       (setf test nil))                                                 ;; or that both objects are observed                                 
      (t
       (progn
-        (if (> (depth pos1) 0)
-            (progn
-              (setf relevant-pos1 (nth relevant-position pos1))
-              (setf relevant-pos2 (nth relevant-position pos2))
-              (setf ancillary-pos1     (nth (- 1 relevant-position) pos1))
-              (setf ancillary-pos2     (nth (- 1 relevant-position) pos2))
-              (setf ancillary-pos1-max (eval (list relation (nth (- 1 relevant-position) pos1) max-distance)))
-              (setf ancillary-pos2-max (eval (list relation (nth (- 1 relevant-position) pos2) max-distance)))
-              (setf manhattan-distance
-                    (cond
-                      ((equals relevant-position 0) (manhattan-distance relevant-pos1 ancillary-pos1 relevant-pos2 ancillary-pos2))
-                      ;                 ((equals relevant-position 1) (manhattan-distance ancillary-pos1 relevant-pos1 ancillary-pos2 relevant-pos2))
-                      ))
-              (setf test
-                    (cond
-                      ((equals relation '-) (and (< relevant-pos1 relevant-pos2) (<= manhattan-distance max-distance)))
-                      ((equals relation '+) (and (> relevant-pos1 relevant-pos2) (<= manhattan-distance max-distance))))))
-              
-            (progn
-              (setf manhattan-distance (abs (- pos1 pos2)))
-              (setf test
-                    (cond
-                      ((equals relation '-) (and (< pos1 pos2) (<= manhattan-distance max-distance)))
-                      ((equals relation '+) (and (> pos1 pos2) (<= manhattan-distance max-distance))))))))))
+        (case (depth pos1)
+          (2 ; for 3D models
+           (error "Validation not implemented for 3D models."))
+          (1 ; for 2D models
+           (progn
+             (setf relevant-pos1      (nth relevant-position pos1))
+             (setf relevant-pos2      (nth relevant-position pos2))
+             (setf ancillary-pos1     (nth (- 1 relevant-position) pos1))
+             (setf ancillary-pos2     (nth (- 1 relevant-position) pos2))
+             (setf ancillary-pos1-max (eval (list relation (nth (- 1 relevant-position) pos1) max-distance)))
+             (setf ancillary-pos2-max (eval (list relation (nth (- 1 relevant-position) pos2) max-distance)))
+
+             (setf manhattan-distance
+                   (cond
+                     ((equals relevant-position 0) (manhattan-distance relevant-pos1 ancillary-pos1 relevant-pos2 ancillary-pos2))
+                     ((equals relevant-position 1) (manhattan-distance ancillary-pos1 relevant-pos1 ancillary-pos2 relevant-pos2))))
+             
+             (setf test
+                   (cond
+                     ((equals relation '-) (and (< relevant-pos1 relevant-pos2) (<= manhattan-distance max-distance)))
+                     ((equals relation '+) (and (> relevant-pos1 relevant-pos2) (<= manhattan-distance max-distance)))))))
+          (0 ; for 1D models
+           (progn
+             (setf manhattan-distance (abs (- pos1 pos2)))
+             (setf test
+                   (cond
+                     ((equals relation '-) (and (< pos1 pos2) (<= manhattan-distance max-distance)))
+                     ((equals relation '+) (and (> pos1 pos2) (<= manhattan-distance max-distance)))))))))))
 
     (setf test (and test (validate-superlative intension model)))
     (if validate-true test (not test))))

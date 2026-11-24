@@ -9,6 +9,8 @@
 ; Section 0.1: CCL compatibility patches (from Dan Bothell's ACT-R codebase)
 ; ---------------------------------------------------------------------------------
 
+#+ccl (setf (fdefinition 'ignore) (lambda (&rest args) (declare (cl:ignore args)) nil))
+
 #+ccl (defun split-sequence (delimiter seq &key (count nil) (remove-empty-subseqs nil) (from-end nil) (start 0) (end nil) (test nil test-supplied) (test-not nil test-not-supplied) (key nil key-supplied))
   "Return a list of subsequences in seq delimited by delimiter.
 
