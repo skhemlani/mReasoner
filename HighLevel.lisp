@@ -52,15 +52,16 @@
    possible. If system2 is nil, returns heuristic conclusions, otherwise
    returns both heuristic conclusions as well as weaker counterparts that
    are true in the models of the assertions."
+  (declare (ignore v))
   (trc "Control" (format nil "Set task: Infer what possibly follows from ~{~A~#[~:;, ~]~}" (mapcar #'abbreviate intensions)))
   (let* ((models              (cond ((model-p (first intensions)) intensions)
                                     ((intension-p (first intensions)) (interpret intensions))))
          (model               (first models))
-         (initial-conclusions  (handler-case (form-initial-conclusion model)
-                                 (false-heuristic-conclusion-error () (list *nvc*))))
+         (initial-conclusions (handler-case (form-initial-conclusion model)
+                                (false-heuristic-conclusion-error () (list *nvc*))))
          possible-conclusions)
     (when (not system2) (return-from what-possibly-follows? initial-conclusions))
-    (dolist (c (append (form-weaker-conclusions invalid-conclusions (list model))
+    (dolist (c (append (form-weaker-conclusions initial-conclusions (list model))   ; BUG-01
                        initial-conclusions))
       (when (validate c models) (push c possible-conclusions)))
     possible-conclusions))
@@ -87,7 +88,7 @@
     (dolist (c (append (form-weaker-conclusions invalid-conclusions (list model))
                        initial-conclusions))
       (when (validate c models) (push c valid-conclusions)))
-    valid-conclusions))
+  valid-conclusions))
 
 (defun what-follows? (intensions &key (system2 (system2-enabled?)) (v nil))
   "The same fn as what-necessarily-follows?"

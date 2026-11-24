@@ -59,7 +59,7 @@
 			 to perform or display any portion of that work, and to permit~%~
 			 others to do so for Government purposes.~%~
              ---------------------------------------------------------------~%"
-                *version* "2023-08-17"))
+                *version* "2023-12-04"))
 
 (defun process-input (&key (input-file nil) (output-file nil))
   "High level fn to take observation (in the form of a JSON file) + task, and output
@@ -73,7 +73,8 @@
         (process-json-input-file input-file output-file)
       (progn
         (print-header)
-        (mreasoner-repl)))))
+        (mreasoner-repl))))
+  (reset-system-parameters))
 
 (defun process-json-input-file (input-file &optional output-file)
   "Read input file, parse it into JSON object, send it to observe-and-comprehend;
@@ -103,6 +104,9 @@
         (if (equals (first json) :obj)
             (progn
               
+              (when (some #'(lambda (x) (equals "parameters" x)) (mapcar #'first (rest json)))
+                (setf model (process-parameters json)))
+
               (cond
                ((some #'(lambda (x) (equals "observations" x)) (mapcar #'first (rest json)))
                 (setf model (process-observation json)))
@@ -130,6 +134,18 @@
         output)
 )))
 
+(defun process-parameters (json-parameters)
+  "Sets system parameters based on JSON file specification"
+  (let* ((obj (rest json-parameters))
+         (parameters (rest (rest (nth (position "parameters" obj :test #'equals :key #'first) obj))))
+         (size (cdr (assoc "size" parameters :test #'equals)))
+         (atypicality (cdr (assoc "atypicality" parameters :test #'equals)))
+         (search (cdr (assoc "search" parameters :test #'equals)))
+         (revision (cdr (assoc "revision" parameters :test #'equals)))
+         (distance (cdr (assoc "distance" parameters :test #'equals)))
+         (compression (cdr (assoc "compression" parameters :test #'equals))))
+    (set-system-parameters :size size :atypicality atypicality :search search :revision revision :distance distance :compression compression)))
+
 (defun process-observation (json-observation)
   "Constructs spatial model from observations JSON file"
   (let* ((obj    (rest json-observation))
@@ -150,9 +166,13 @@
     (make-instance 'sp-model :things things :fn nil :dims '((:X :LEFT-RIGHT) (:Y :BELOW-ABOVE)))))
 
 (defun trim-observation (things)
-  (if (every #'null (first things))
-      (trim-observation (rest things))
-    things))
+  (cond
+   ((null things)
+    (error "Empty observation"))
+   ((every #'null (first things))
+    (trim-observation (rest things)))
+   (t
+    things)))
 
 (defun process-premises (json)
   (let ((premises (get-json-premises json)))
@@ -218,8 +238,6 @@
 ; ---------------------------------------------------------------------------------
 
 (defmethod focus-on ((directive sp-intension) (observation sp-model))
-  (setf *dir* directive)
-  (setf *obs* observation)
   (let* ((duplicates (duplicate-things observation))
          (observations (build-dummy-sp-models duplicates observation))
          (focus-candidates nil)
@@ -232,7 +250,7 @@
                                                                 entities)))
               (loop for v in validation
                     for e in entities
-                    if (not (validate-model v o))
+                    if (not (validate-model v o :perceptual-distance (perceptual-distance?)))
                       do
                         (setf foc (find-and-replace-all e nil foc)))
               (push foc focus-candidates)))
@@ -266,18 +284,29 @@
 ; ---------------------------------------------------------------------------------
 
 (defun validate-observation (type relations observation)
-  (let (validation validation-output)
+  (let* ((duplicates (duplicate-things observation))
+         (observations (build-dummy-sp-models duplicates observation))
+         validation-output
+         validation-for-observations
+         validation-for-relation
+         validation)
     (case type
       (:premises     nil)
       (:observations
        (format t "~45@<Queried relation~>~15<Holds in model~>~%~
                      ------------------------------------------------------------~%")
        (dolist (relation relations)
-         (handler-case
-             (setf validation-output (if (validate (parse relation) (list observation)) "YES" "NO"))
-           (parser-error () (setf validation-output "ERROR")))
-         (format t "~45@<~A.~>~15<~A~>~%" relation validation-output)
-         (push (list relation validation-output) validation))
+         (loop for o in observations
+               do
+                 (handler-case
+                     (setf validation-output (validate-model relation o :perceptual-distance (perceptual-distance?)))
+                   (parser-error () (setf validation-output "ERROR")))
+                 (format t "~45@<~A~>~15<~A~>~%" (abbreviate relation) (if validation-output "YES" "NO"))
+                 (push (list relation (abbreviate relation) validation-output) validation-for-observations))
+         (setf validation-for-relation (find-if #'(lambda (x) (third x)) validation-for-observations))
+         (if (null validation-for-relation)
+             (push (first validation-for-observations) validation)
+           (push validation-for-relation validation)))
        (format t "~%")
        (reverse validation)))))
 

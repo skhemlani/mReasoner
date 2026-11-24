@@ -2,13 +2,18 @@
 ; mReasoner is a unified computational implementation of the mental model theory of
 ; thinking and reasoning.
 ; ---------------------------------------------------------------------------------
-; Contact: Sangeet Khemlani (sunny.khemlani@nrl.navy.mil)
+; Contact: Sangeet Khemlani (sangeet.khemlani.civ@us.navy.mil)
 ;          Navy Center for Applied Research in Artificial Intelligence
-;          Naval Research Laboratory
+;          US Naval Research Laboratory
 ;
 ;          Phil Johnson-Laird (phil@princeton.edu)
 ;          Department of Psychology
 ;          Princeton University
+;
+; Contributors:
+;          Max Lotstein
+;          Marco Ragni
+;          Juan Manuel Goya
 ; ---------------------------------------------------------------------------------
 ;
 ; Distribution statement
@@ -71,24 +76,21 @@
 #-:jsown (when (probe-file (file-path "jsown-master/load.lisp"))
                (load (file-path "jsown-master/load.lisp")))
 
+#+sbcl (multiple-value-bind (revision-string stderr exit-code)
+           (uiop:run-program "git rev-list --count \$\(git log -n 1 --pretty=format:\%H -- \.\/\)"
+                             :output :string
+                             :ignore-error-status t)
+         (when (> (length revision-string) 0)
+           (let ((revision-number (read-from-string revision-string)))
+             (when (integerp revision-number)
+               (setf *version* (format nil "~A.r~A" *version* revision-number))))))
+
 #+lispworks (progn 
-              ; Get revision information from SVN
-              (let ((string-stream (make-string-output-stream)) output position revision-number)
-                (system:call-system-showing-output (format nil "cd \"~A\"; svn info" 
-                                                           (directory-namestring (current-pathname)))
-                                                   :prefix "" :show-cmd nil :output-stream string-stream)
-                (setf output (split-sequence (format nil ":MSP~%") (get-output-stream-string string-stream)))
-                (setf position (position "Last Changed Rev" output :test #'string-equal))
-                (when (numberp position) (setf revision-number (nth (+ 1 position) output)))
-                (when revision-number
-                  (setf revision-number (parse-integer revision-number :junk-allowed t))
-                  (setf *version* (format nil "~A.r~A" *version* revision-number))))
-
               (setf system:*stack-overflow-behaviour* nil) ; Suppress stack overflow warnings SSK 2015-02-05
-
               (defsystem "mReasoner"
                 ()
-                :members ("Classes.lisp"
+                :members ("Patches.lisp"
+                          "Classes.lisp"
                           "Utilities.lisp"
                           "API.lisp"
                           "Parser.lisp"
@@ -104,11 +106,11 @@
                           )
                 :rules  ((:in-order-to :compile :all
                           (:requires (:load :previous)))))
-              
               (lispworks:load-system "mReasoner" :force t))
 
 #+(or ccl mcl openmcl cmu sbcl clisp ecl scl allegro)
 (progn
+  (load (file-path "Patches.lisp"))
   (load (file-path "Classes.lisp"))
   (load (file-path "Utilities.lisp"))
   (load (file-path "API.lisp"))
@@ -120,7 +122,8 @@
   (load (file-path "Counterexamples.lisp"))
   (load (file-path "HighLevel.lisp"))
   (load (file-path "Diagnostics.lisp"))
-  (load (file-path "jpd-belief-icon.lisp")))
+  (load (file-path "jpd-belief-icon.lisp"))
+  )
 
 ; ---------------------------------------------------------------------------------
 ; Global variables and related functions
@@ -143,19 +146,13 @@
 (defparameter *synthetic-data* nil
   "Parameter that holds synthetic data from multiple inferences.")
 
-(defparameter +sigma+ 0.0
-  "Parameter that control the execution of system 2 processes (i.e., sigma = search)
-   across the system as a whole. When sigma = 0, system 2 processes are never called.
-   When sigma = 1, system 2 processes are always called. When sigma = .6, there is a 60%
-   chance that system 2 processes will be called.")
-
-(defparameter +lambda+ 4.0
+(defparameter +size+ 4.0 ;; formerly +lambda+
   "Parameter that controls the size of models. Lambda denotes the lambda parameter Poisson
    distribution. By default, lambda = 4. To set a model's size, the system will sample from a
    left-truncated Poisson distribution with lambda parameter = 4. The system will sample from
    the distribution and use that sample as the size (cardinality) of the model.")
 
-(defparameter +epsilon+ 0.0
+(defparameter +atypicality+ 0.0 ;; formerly +epsilon+
   "Parameter that controls the construction of canonical models, i.e., models whose individuals
    are specified in the intensions, i.e., epsilon = error. When epsilon = 0, the system always
    builds canonical models. When epsilon = 1, every time the system needs to build a token in a
@@ -163,33 +160,45 @@
    every time the system needs to build a token in a model, there will be a 60% chance that the
    system will draw from canonical tokens.")
 
-(defparameter +omega+ 0.0
+(defparameter +search+ 0.0 ;; formerly +sigma+
+  "Parameter that control the execution of system 2 processes (i.e., sigma = search)
+   across the system as a whole. When sigma = 0, system 2 processes are never called.
+   When sigma = 1, system 2 processes are always called. When sigma = .6, there is a 60%
+   chance that system 2 processes will be called.")
+
+(defparameter +revision+ 0.0 ;; formerly +omega+
   "Parameter that controls whether individuals weaken their initial conclusion after finding a
    counterexample or whether they simply report 'NVC' once a counterexample is found. When
    omega = 1.0, weakening always occurs; when omega = 0.0, individuals always report 'NVC' when
    a counterexample is found. When omega = 0.6, there's a 60% chance that weakening will occur.")
 
-(defparameter +kappa+ 0.0
+(defparameter +compression+ 0.0
   "Parameter that controls whether spatial observations are compressed to eliminate spaces between
-   them or else retain their absolute positioning in a provided grid. When kappa = 0.0, no spatial
-   compression occurs; when kappa = 1.0, compression always occurs; when kappa = 0.6, there's a
-   60% chance of compression.")
+   them or else retain their absolute positioning in a provided grid. When compression = 0.0, no
+   spatial compression occurs; when compression = 1.0, compression always occurs; when compression
+   = 0.6, there's a 60% chance of compression.")
+
+(defparameter +distance+ :infinity
+  "Parameter that controls spatial distance between ")
 
 (defun reset-system-parameters ()
   (setf *stochastic* nil)
-  (setf +lambda+ 4.0)
-  (setf +sigma+ 0.0)
-  (setf +epsilon+ 0.0)
-  (setf +omega+ 0.0)
-  (setf +kappa+ 0.0))
+  (setf +size+ 4.0)
+  (setf +search+ 0.0)
+  (setf +atypicality+ 0.0)
+  (setf +revision+ 0.0)
+  (setf +compression+ 0.0)
+  (setf +distance+ :infinity)
+  nil)
 
-(defun set-system-parameters (&key lambda sigma epsilon omega kappa)
+(defun set-system-parameters (&key size atypicality search revision compression distance)
   (setf *stochastic* t)
-  (setf +lambda+ lambda)
-  (setf +sigma+ sigma)
-  (setf +epsilon+ epsilon)
-  (setf +omega+ omega)
-  (setf +kappa+ kappa))
+  (setf +size+ size)
+  (setf +atypicality+ atypicality)
+  (setf +search+ search)
+  (setf +revision+ revision)
+  (setf +compression+ compression)
+  (setf +distance+ distance))
 
 (defun stochastic-enabled? ()
   *stochastic*)
@@ -200,27 +209,37 @@
 (defun disable-stochastic-mode ()
   (setf *stochastic* nil))
 
+(defun generate-poisson-sample (lambda &key (left-truncate '(0)))
+  (let ((sample nil)
+        (candidate-sample nil))
+    (while (not sample)
+      (setf candidate-sample (poisson-random-number lambda))
+      (when (not (member candidate-sample left-truncate))
+        (setf sample candidate-sample)))
+    sample))
+
 (defun generate-size ()
-  (let ((size nil)
-        (candidate-size nil)
-        (left-truncate '(0 1)))
-    (while (not size)
-      (setf candidate-size (poisson-random-number +lambda+))
-      (when (not (member candidate-size left-truncate))
-        (setf size candidate-size)))
-    size))
+  (generate-poisson-sample +size+ :left-truncate '(0 1)))
 
 (defun build-canonical? ()
-  (< (random 1.0) (- 1 +epsilon+)))
+  (< (random 1.0) (- 1 +atypicality+)))
 
 (defun system2-enabled? ()
-  (< (random 1.0) +sigma+))
+  (< (random 1.0) +search+))
 
 (defun weaken-conclusions? ()
-  (< (random 1.0) +omega+))
+  (< (random 1.0) +revision+))
+
+(defun perceptual-distance? ()
+  "Generates perceptual-distance by sampling from a Poisson distribution of
+   lambda = +distance+, but only if +distance+ is small (< 100); else,
+   distance = infinity"
+  (if (or (equals +distance+ :infinity) (> +distance+ 100))
+      :infinity
+    (generate-poisson-sample +distance+ :left-truncate '(0))))
 
 (defun spatial-compression? ()
-  (< (random 1.0) +kappa+))
+  (< (random 1.0) +compression+))
 
 (format t "~A[~A]~A~%"
         (make-string 40 :initial-element #\-)

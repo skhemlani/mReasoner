@@ -11,6 +11,9 @@
 #+lispworks (load-all-patches)
 #+lispworks (load (current-pathname "+mReasoner.lisp" nil))
 #+ccl (load "~/Repository/Models/mReasoner/Code/+mReasoner.lisp")
+#+sbcl (progn
+         (declaim (optimize (speed 3) (safety 1) (debug 0)))
+         (load "~/Repository/Models/mReasoner/Code/+mReasoner.lisp"))
 
 ; ---------------------------------------------------------------------------------
 ; Section 1: Deliver Mac app with GUI (LispWorks)
@@ -25,15 +28,15 @@
 ; Section 2: Deliver standalone executable with REPL (LispWorks)
 ; ---------------------------------------------------------------------------------
 
-; (defun main ()
-;	(if (> (length (get-command-line-arguments)) 0)
-;		(let ((input (find-argument "-i"))
-;		      (output (find-argument "-o")))
-;                  (write-to-json (read-events-and-execute-query input) output))
-;          (progn
-;            (print-header)
-;            (mreasoner-repl))))
-;
+(defun main ()
+	(if (> (length (get-command-line-arguments)) 0)
+		(let ((input (find-argument "-i"))
+		      (output (find-argument "-o")))
+                 (write-to-json (read-events-and-execute-query input) output))
+         (progn
+           (print-header)
+           (mreasoner-repl))))
+
 ;(deliver 'main "mReasoner" 0)
 
 ; ---------------------------------------------------------------------------------
@@ -47,12 +50,13 @@
 ; ---------------------------------------------------------------------------------
 
 #+ccl (save-application "~/Desktop/mReasoner-spatial" :toplevel-function #'process-input :prepend-kernel t)
+#+sbcl (sb-ext:save-lisp-and-die "mReasoner" :toplevel #'process-input :executable t :compression t)
 
 ; ---------------------------------------------------------------------------------
 ; Section 3: Deliver standalone executable for Syllogism Challenge (CCL)
 ; ---------------------------------------------------------------------------------
 
-(deliver 'process-input "mReasoner-spatial" 0)
+(deliver 'process-input "mReasoner-spatial" 0 :split nil)
 
 ; #+ccl (save-application "~/mReasoner-bin" :toplevel-function #'main :prepend-kernel t)
 

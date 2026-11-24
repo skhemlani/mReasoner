@@ -323,7 +323,7 @@ Section 4.6: Built-in intensions
   "When parse is fed a string, it splits the string up, converts it to a list,
    and parses the list"
   #+lispworks (setf words (split-sequence " " words))
-  #+ccl (setf words (split-sequence #\Space words))
+  #+(or ccl sbcl) (setf words (split-sequence #\Space words))
   (parse (mapcar #'read-from-string words)))
 
 (defmethod parse ((words list))
@@ -1458,7 +1458,6 @@ Current parts of speech include
 (defvar x-isnot-A (p '(X is not an A)))
 (defvar x-is-B    (p '(X is a B)))
 (defvar x-isnot-B (p '(X is not a B)))
-
 
 (defvar vBw (p '(V happened before W)))
 (defvar vBx (p '(V happened before X)))

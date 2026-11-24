@@ -96,28 +96,28 @@
 ; Section 9.2: Constraint finding
 ; ---------------------------------------------------------------------------------
 
-(defun recursively-find-constraints (property fn &optional (constraints (find-constraints property fn)))
+(defun recursively-find-constraints (property intensions &optional (constraints (find-constraints property intensions)))
   "Gets initial set of constraints for property, then iterates through
    all members of the set of constraints and checks to see if there are
    any additional constraints that apply. If any new constraints are found,
    then applies recursively-find-constraints one the new set of constraints.
-   (recursively-find-constraints '(A) '(list Aab Aac))
+   (recursively-find-constraints '(A) (list Aab Aac))
    => '((B) (A) (C))
    (recursively-find-constraints '(A) (list Eab Ebc))
    => '((A) (- B))"
   (let ((new-constraints constraints))
     (dolist (c constraints)
       (setf new-constraints
-            (remove-duplicates (append new-constraints (find-constraints c fn)) :test #'equalp))
-      (setf new-cont new-constraints))
-    (if (every #'(lambda (x) (member x constraints)) new-constraints)
-        new-constraints
-      (remove-duplicates
-       (append new-constraints
-               (recursively-find-constraints property fn
-                                             (set-difference new-constraints
-                                                             constraints :test #'equal)))
-       :test #'equal))))
+            (remove-duplicates (append new-constraints (find-constraints c intensions)) :test #'equals)))
+    (cond ((every #'(lambda (x) (member x constraints :test #'equals)) new-constraints)
+           new-constraints)
+          (t
+           (remove-duplicates
+            (append new-constraints
+                    (recursively-find-constraints property (rest intensions)
+                                                  (set-difference new-constraints
+                                                                  constraints :test #'equals)))
+            :test #'equals)))))
 
 (defun find-constraints (property fn)
   "Returns constraint list for a particular property, i.e.,
@@ -265,22 +265,25 @@ break-model
 
 (defmethod add-individuals ((conclusion q-intension) (model q-model) &key (validate-true nil))
   "First attempts to falsify or satisfy depending on progressive addition of individuals;
+   Then does so by adding canonical set of individuals;
    If that doesn't work,
       then if satisfying,
             if negative in conclusion calls add-affirmative else add-negative
       else if falsifying
             if negative in conclusion calls add-negative else add-affirmative"
-  (let ((counterexample (add-progressively conclusion model :validate-true validate-true)))
-    (when (null counterexample)
-      (setf counterexample
-            (if validate-true
-                (if (negative-intension conclusion)
-                    (add-affirmative conclusion model :validate-true validate-true)
-                  (add-negative conclusion model :validate-true validate-true))
-              (if (negative-intension conclusion)
-                  (add-negative conclusion model :validate-true validate-true)
-                (add-affirmative conclusion model :validate-true validate-true)))))
-    counterexample))
+  (let (counterexample) 
+    (if (setf counterexample (add-progressively conclusion model :validate-true validate-true))
+        counterexample
+      (if (setf counterexample
+                (if validate-true
+                    (if (negative-intension conclusion)
+                        (add-affirmative conclusion model :validate-true validate-true)
+                      (add-negative conclusion model :validate-true validate-true))
+                  (if (negative-intension conclusion)
+                      (add-negative conclusion model :validate-true validate-true)
+                    (add-affirmative conclusion model :validate-true validate-true))))
+          counterexample
+        nil))))
 
 #|
 There are two high-level functions, one to try to refute affirmative conclusions:
@@ -460,23 +463,26 @@ add-negative          -- adds properties to individuals to try to refute negativ
 
 (defmethod add-progressively ((conclusion q-intension) (model q-model) &key (validate-true t))
  "!!! SSK 12.2.13: documentation needed"
- (let* ((fn (footnote model))
-        (terms (remove-duplicates (mapcan #'terms fn) :test #'equals))
-        (subject (list (subject conclusion)))
-        (object (list (object conclusion)))
+ (let* ((fn                  (footnote model))
+        (terms               (remove-duplicates (mapcan #'terms fn) :test #'equals))
+        (subject             (list (subject conclusion)))
+        (object              (list (object conclusion)))
         (unconstrained-terms (remove-if #'(lambda (x) (recursively-find-constraints x fn)) terms))
+        (term-combinations   (all-combinations unconstrained-terms conclusion))
         (number-to-add       (+ (get-referent-cardinality subject model)
                                 (get-referent-cardinality object model)))
         (subject-constraints (recursively-find-constraints subject fn))
         (object-constraints  (recursively-find-constraints object fn))
-        (validated-models     (add-individual-progressively conclusion (copy-list (individuals model)) fn
-                                                           unconstrained-terms subject-constraints object-constraints
-                                                           :validate-true validate-true :number-to-add number-to-add)))
-   
-   validated-models))
+        validated-models)
+   (dolist (c term-combinations)
+     (push (add-individual-progressively conclusion (copy-list (individuals model)) fn
+                                         c subject-constraints object-constraints
+                                         :validate-true validate-true :number-to-add number-to-add)
+           validated-models))
+   (find-if #'identity validated-models)))
 
 (defmethod add-individual-progressively ((conclusion q-intension) model-indivs footnote
-                                         unconstrained-terms subject-constraints object-constraints
+                                         terms subject-constraints object-constraints
                                          &key (validate-true t) (number-to-add 0))
   "!!! SSK 12.2.13: documentation needed"
   (if (= 0 number-to-add) nil
@@ -485,7 +491,7 @@ add-negative          -- adds properties to individuals to try to refute negativ
            (indv-1 (add-neg subject object model-indivs subject-constraints))
            (indv-2 (add-neg object subject model-indivs object-constraints))
            (indv-1&2 (add-neg object subject indv-1 object-constraints))
-           (new-model-indivs (append model-indivs (list unconstrained-terms)))
+           (new-model-indivs (append model-indivs (list terms)))
            (models (list model-indivs new-model-indivs indv-1 indv-2 indv-1&2))
            (models (remove-if #'(lambda (x) (equals model-indivs x)) models))
            (models (mapcar #'(lambda (x) (make-instance 'q-model :indivs x)) models))
@@ -496,7 +502,7 @@ add-negative          -- adds properties to individuals to try to refute negativ
             (mapcar #'(lambda (x) (setf (footnote x) footnote)) validated-models)
             (first validated-models))
         (add-individual-progressively conclusion new-model-indivs footnote
-                                      unconstrained-terms subject-constraints object-constraints
+                                      terms subject-constraints object-constraints
                                       :validate-true validate-true
                                       :number-to-add (1- number-to-add))))))
 
@@ -908,9 +914,10 @@ Then, iterate through the list to get each possible pair of individuals.
          (indivs    (individuals model))
          (new-model (copy-class-instance model))
          counterexample)
-    (when (not constraints) (setf constraints subject))
+    (when (not constraints) (setf constraints (list subject)))
     (setf (individuals new-model) (drop-unconstrained-properties indivs subject constraints))
     (setf counterexample (add-individuals conclusion new-model :validate-true validate-true))
+    (setf *temp* counterexample)
     (when (and counterexample
                (validate conclusion (list counterexample) :validate-true validate-true)
                (validate-all-conclusions (footnote counterexample) (list counterexample)))
@@ -919,7 +926,7 @@ Then, iterate through the list to get each possible pair of individuals.
 (defun drop-unconstrained-properties (individuals subject constraints)
   (if (null individuals) nil
     (if (find-referent-in-individual subject (first individuals))
-        (cons (list constraints) (drop-unconstrained-properties (rest individuals) subject constraints))
+        (cons constraints (drop-unconstrained-properties (rest individuals) subject constraints))
       (cons (first individuals) (drop-unconstrained-properties (rest individuals) subject constraints)))))
 
 ; ---------------------------------------------------------------------------------

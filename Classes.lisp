@@ -86,7 +86,7 @@
    (abbreviation :accessor abbreviation :initarg :abbr))
   (:documentation "Intension for special case assertions, e.g., 'no valid conclusion', 'impossible', etc."))
 
-(defconstant *nvc* (make-instance 'null-intension :desc "No valid conclusion" :abbr "NVC"))
+(defvar *nvc* (make-instance 'null-intension :desc "No valid conclusion" :abbr "NVC"))
 
 (defclass q-intension (intension)
   ((first-argument  :accessor subject     :initarg :subj)

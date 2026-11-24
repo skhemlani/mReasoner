@@ -5,35 +5,59 @@
 ; Section 11.1: System diagnostics
 ; Section 11.2: Syllogism diagnostics
 ; Section 11.3: Immediate inference diagnostics
-; Section 11.4: Consistency diagnostics
-; Section 11.5: Running experiments and parameter searching
-; Section 11.6: Pre-defined experiments
+; Section 11.4: Set membership diagnostics
+; Section 11.5: Temporal reasoning diagnostics
+; Section 11.6: Running experiments and parameter searching
+; Section 11.7: Pre-defined experiments
 
 ; ---------------------------------------------------------------------------------
 ; Section 11.1: System diagnostics
 ; ---------------------------------------------------------------------------------
 
-(defun run-diagnostics ()
-  (when (stochastic-enabled?)
-    (format t "~50@<Disabled stochastic mode.~>~%")
-    (disable-stochastic-mode))
-  (format t "~50@<Checking syllogism predictions...~>")
-  (format t "~10<~A~>~%" (run-syllogism-diagnostics))
-  (format t "~50@<Checking immediate inference predictions...~>")
-  (format t "~10<~A~>~%" (run-immediate-inference-diagnostics))
-  (format t "~50@<Checking immediate inference most predictions ...~>")
-  (format t "~10<~A~>~%" (run-immediate-inference-most-diagnostics))
-  (format t "~50@<Checking consistency predictions...~>")
-  (format t "~10<~A~>~%" (run-consistency-diagnostics))
-  (when (stochastic-enabled?)
-    (format t "~50@<Re-enabled stochastic mode.~>~%")
-    (enable-stochastic-mode)))
+(defun run-diagnostics (&key (v nil))
+  (let ((size +size+)
+        (atypicality +atypicality+)
+        (search +search+)
+        (revision +revision+)
+        (compression +compression+)
+        (distance +distance+)
+        disabled-stochastic-mode)
+    (when (stochastic-enabled?)
+      (setf disabled-stochastic-mode t)
+      (disable-stochastic-mode)
+      (reset-system-parameters))
+    
+    (format t "Running quantificational reasoning diagnostics:~%~%")
+    (format t "~50@< Checking syllogisms...~>")
+    (format t "~6<~A~>~%" (run-syllogism-diagnostics :v v))
+    (format t "~50@< Checking immediate inferences...~>")
+    (format t "~6<~A~>~%" (run-immediate-inference-diagnostics :v v))
+    (format t "~50@< Checking immediate inferences with \"most\"...~>")
+    (format t "~6<~A~>~%" (run-immediate-inference-most-diagnostics :v v))
+    (format t "~50@< Checking immediate inferences consistency...~>")
+    (format t "~6<~A~>~%" (run-consistency-diagnostics :v v))
+    (format t "~50@< Checking set-membership inferences...~>")
+    (format t "~6<~A~>~%" (run-set-membership-diagnostics :v v))
+    
+    (format t "~%Running temporal reasoning diagnostics:~%~%")
+    (format t "~50@< Checking temporal immediate inferences...~>")
+    (format t "~6<~A~>~%" (run-temporal-imm-inf-diagnostics :v v))
+    (format t "~50@< Checking temporal three-term series deductions...~>")
+    (format t "~6<~A~>~%" (run-temporal-deductions-diagnostics :v v))
+    (format t "~50@< Checking durational consistency inferences...~>")
+    (format t "~6<~A~>~%" (run-durations-consistency-diagnostics :v v))
+    
+    (when disabled-stochastic-mode
+      (set-system-parameters :size size :atypicality atypicality
+                             :search search :revision revision
+                             :compression compression :distance distance)
+      (enable-stochastic-mode))))
 
 ; ---------------------------------------------------------------------------------
 ; Section 11.2: Syllogism diagnostics
 ; ---------------------------------------------------------------------------------
 
-(defvar +syl-preds-v0.5+
+(defvar *syl-preds-v1.0*
   '(("Aac") ("Iac" "NVC") ("Eac") ("Oac" "NVC") ("Iac") ("Iac" "NVC") ("Eac" "Oac" "NVC")
     ("Oac" "NVC") ("Eac" "NVC") ("Eac" "NVC") ("Eac" "NVC") ("Oac" "NVC") ("Oac" "NVC")
     ("Oac" "NVC") ("Oac" "NVC") ("Oac" "NVC") ("Aac" "Aca" "Iac" "NVC") ("Iac" "Ica")
@@ -43,8 +67,8 @@
     ("Aac" "NVC") ("Ica" "Iac" "NVC") ("Eac" "Eca") ("Oca") ("Iac" "Ica" "NVC") ("Iac" "NVC")
     ("Eca" "Eac" "Oac" "NVC") ("Oca" "NVC") ("Eca" "Eac") ("Eac" "Eca" "Oca" "NVC") ("Eac" "NVC")
     ("Oca" "NVC") ("Oac") ("Oac" "NVC") ("Oac" "NVC") ("Oac" "NVC") ("Aac" "Iac" "NVC") ("Ica" "Iac")
-    ("Eac" "Eca" "Oac" "NVC") ("Oac") ("Ica" "Iac") ("Iac" "NVC") ("Eac" "Oac" "NVC") ("Oac" "NVC")
-    ("Eac" "Eca" "Oca" "NVC") ("Eac" "NVC") ("Eac" "NVC") ("Oac" "NVC") ("Oca") ("Oca" "NVC")
+    ("Eac" "Eca" "Oac" "NVC") ("Oac") ("Ica" "Iac") ("Iac" "NVC") ("Eac" "Eca" "Oac" "NVC") ("Oac" "NVC")
+    ("Eac" "Eca" "Oca" "NVC") ("Eac" "Eca" "NVC") ("Eac" "NVC") ("Oac" "NVC") ("Oca") ("Oca" "NVC")
     ("Oca" "NVC") ("Oac" "NVC")))
 
 (defun run-syllogism-diagnostics (&key (v nil))
@@ -52,16 +76,16 @@
    syllogistic reasoning component was finalized. The fn checks to make sure that all current
    predictions are the same as the previous model's, and when they're not, prints an error."
   (when v
-    (format t "---------------------------------------------------------------------------------------------------------~%~
-                 ~11,A~23,A~23,A~14,A~%~
-                 ---------------------------------------------------------------------------------------------------------~%"
-            "Syllogism" "Current predictions" "3-25-11 Predictions" "Diagnostic"))
+    (format t "~%----------------------------------------------------------------------------------------------~%~
+                 ~11,A~23,A~26,A~24,A~14,A~%~
+               ----------------------------------------------------------------------------------------------~%"
+            "Syllogism" "Heuristic predictions" "Deliberative predictions" "2026-11-12 Predictions" "Diagnostic"))
   (let ((i 0)
         (ab (list Aab Iab Eab Oab))
         (ba (list Aba Iba Eba Oba))
         (bc (list Abc Ibc Ebc Obc))
         (cb (list Acb Icb Ecb Ocb))
-        major minor)
+        major minor )
     (dotimes (fig 4)
       (case (+ fig 1)
         (1 (setf major ab) (setf minor bc))
@@ -70,40 +94,32 @@
         (4 (setf major ba) (setf minor bc)))
       (dolist (p1 major)
         (dolist (p2 minor)
-          (when (not (or (diagnose-syllogism (list p1 p2) (nth i +syl-preds-v0.5+) :v v)
-                         t))
+          (when (not (diagnose-syllogism (list p1 p2) (nth i *syl-preds-v1.0*) :v v))
               (return-from run-syllogism-diagnostics "[FAILED]"))
           (incf i))))
     (when (not v) "[OK]")))
 
 (defun diagnose-syllogism (premises old-predictions &key (v t))
-  (let* ((premise1      (first premises))
-         (premise2      (second premises))
-         (heuristic-conclusions (what-follows? premises))
-         (final-conclusions     (what-follows? premises :system2 t))
-         counterexamples predictions new-matches-old-p)
+  (let* ((premise1                 (first premises))
+         (premise2                 (second premises))
+         (heuristic-predictions    (remove-duplicates (what-follows? premises) :test #'equals))
+         (deliberative-predictions (remove-duplicates (what-follows? premises :system2 t) :test #'equals))
+          predictions current-included-in-old-p)
 
-    (setf predictions (remove-duplicates (append heuristic-conclusions final-conclusions) :test #'equals))
+    (setf predictions (remove-duplicates (append heuristic-predictions deliberative-predictions) :test #'equals))
     (setf predictions (mapcar #'abbreviate predictions))
 
-    (if (or (not final-conclusions)
-            (set-difference final-conclusions heuristic-conclusions :test #'equals))
-        (setf predictions (append predictions (list "NVC"))))
-
-    ; (when (equal old-predictions '("Oac")) (setf predictions '("Mca" "Eca" "Xac")))
-    ; Uncomment this line to see how the diagnostic
-
-    (setf new-matches-old-p (not (append (set-difference predictions old-predictions :test #'string-equal)
-                                         (set-difference old-predictions predictions :test #'string-equal))))
+    (setf current-included-in-old-p (not (set-difference predictions old-predictions :test #'string-equal)))
 
     (if v
-        (format t "~3,A~8,A~23,A~23,A~14,A~%"
+        (format t "~3,A~8,A~23,A~26,A~23,A~14,A~%"
                 (abbreviate premise1)
                 (abbreviate premise2)
-                (format nil "~{~A~#[~:;, ~]~}" predictions)
+                (format nil "~{~A~#[~:;, ~]~}" (mapcar #'abbreviate heuristic-predictions))
+                (format nil "~{~A~#[~:;, ~]~}" (mapcar #'abbreviate deliberative-predictions))
                 (format nil "~{~A~#[~:;, ~]~}" old-predictions)
-                (if new-matches-old-p "" "Error")))
-    new-matches-old-p))
+                (if current-included-in-old-p "" "Error")))
+    current-included-in-old-p))
 
 ; ---------------------------------------------------------------------------------
 ; Section 11.3: Immediate inference diagnostics
@@ -120,7 +136,7 @@
    syllogistic reasoning component was finalized. The fn checks to make sure that all current
    predictions are the same as the previous model's, and when they're not, prints an error."
   (when v
-    (format t "--------------------------------------------------------------------------~%~
+    (format t "~%--------------------------------------------------------------------------~%~
                  ~15,A~15,A~7,A~7,A~20,A~20,A~%~
                  --------------------------------------------------------------------------~%"
             "Premise" "Conclusion" "Nec?" "Poss?" "06-03-11 Preds" "Diagnostic"))
@@ -150,7 +166,7 @@
    syllogistic reasoning component was finalized. The fn checks to make sure that all current
    predictions are the same as the previous model's, and when they're not, prints an error."
   (when v
-    (format t "--------------------------------------------------------------------------~%~
+    (format t "~%--------------------------------------------------------------------------~%~
                  ~15,A~15,A~7,A~7,A~20,A~20,A~%~
                  --------------------------------------------------------------------------~%"
             "Premise" "Conclusion" "Nec?" "Poss?" "2017-06-28 Preds" "Diagnostic"))
@@ -178,8 +194,6 @@
                         (mapcar #'parse intensions)))
          (premise     (first intensions))
          (conclusion  (second intensions))
-;         (models      (build-model (first intensions)))
-         (ab-concl    (abbreviate conclusion))
          nec pos)
    (cond
      ((equals premise conclusion)
@@ -200,13 +214,9 @@
                (if (equalp (list nec pos) old-predictions) "" "Error")))
    (equalp (list nec pos) old-predictions)))
 
-; ---------------------------------------------------------------------------------
-; Section 11.4: Consistency diagnostics
-; ---------------------------------------------------------------------------------
-
 (defvar *imm-con-preds-v0.9*
   '("Y" "Y" "N" "N" "Y" "Y" "N" "Y" "N" "N" "Y" "Y" "N" "Y" "Y" "Y" "Y" "Y" "N"
-        "Y" "Y" "Y" "N" "Y" "Y" "Y" "Y" "Y" "Y" "Y" "Y" "Y"))
+        "Y" "Y" "Y" "N" "Y" "N" "N" "Y" "Y" "Y" "Y" "Y" "Y"))
 
 (defun run-consistency-diagnostics (&key (v nil))
   "Compares current model's predictions with predictions of this model (as of 3-25-2011), when
@@ -214,9 +224,9 @@
    predictions are the same as the previous model's, and when they're not, prints an error."
   (let ((i 0))
     (when v
-      (format t "------------------------------------------------------------~%~
-                 ~15,A~15,A~20,A~15,A~%~
-                 ------------------------------------------------------------~%"
+      (format t "~%------------------------------------------------------------~%~
+                  ~15,A~15,A~20,A~15,A~%~
+                  ------------------------------------------------------------~%"
               "Assertions" "Consistent?" "10-16-12 Preds" "Diagnostic"))
     (dolist (figure (list (list Aab Iab Eab Oab)
                         (list Aba Iba Eba Oba)))
@@ -227,54 +237,238 @@
           (incf i))))
     (when (not v) "[OK]")))
 
-(setf *temp* nil)
-
 (defun diagnose-consistency (intensions old-prediction &key (v nil))
   "fn for drawing 'consistency' conclusions"
   (let* (model consistency)
     (handler-case
         (setf model (first (consistent? intensions :system2 t))))
     (setf consistency (if model "Y" "N"))
-    (setf *temp* (append *temp* (list consistency)))
     (if v
         (format t "~3,A,~11,A~15,A~20,A~15,A~%" (abbreviate (first intensions)) (abbreviate (second intensions))
                 consistency old-prediction (if (equalp consistency old-prediction) "" "!")))
-    (equalp consistency old-prediction)
-t))
+    (equalp consistency old-prediction)))
 
 ; ---------------------------------------------------------------------------------
-; Section 11.5: Running experiments and parameter searching
+; Section 11.4: Set-membership diagnostics
+; ---------------------------------------------------------------------------------
+
+(defvar *set-mem-preds-v1.0*
+  '("Y" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" ))
+
+(defun run-set-membership-diagnostics (&key (v nil))
+  "Compares current model's performance on a battery of set-membership problems (diagnostic
+   versions of similar problems described in Khemlani & Johnson-Laird 2022). The fn checks
+   to make sure performance is accurate."
+  (let ((i 0))
+    (when v
+      (format t "~%----------------------------------------------------~%")
+      (format t "                            Necessary?~%")
+      (format t "                         ----------------~%")
+      (format t "Premises      Conclusion Current  Correct Diagnostic~%~
+                 ------------- ---------- ---------------- ----------~%"))
+    (dolist (figure (list (list Aab Iab Eab Oab)
+                          (list Aba Iba Eba Oba)))
+      (dolist (q1 (list x-is-A x-isnot-A))
+        (dolist (q2 figure)
+          (dolist (c (list x-is-B x-isnot-B))
+            (when (not (diagnose-set-membership (list c q1 q2) (nth i *set-mem-preds-v1.0*) :v v))
+              (return-from run-set-membership-diagnostics "[FAILED]"))
+            (incf i)))))
+    (when (not v) "[OK]")))
+
+(defun diagnose-set-membership (intensions old-prediction &key (v nil))
+  "fn for drawing necessary conclusions"
+  (let* (model necessary)
+    (handler-case
+        (setf model (first (necessary? (list (first intensions)) :given (rest intensions) :system2 t))))
+    (setf necessary (if model "Y" "N"))
+    (if v
+        (format t "~10,A~4,A~14,A~8,A~8,A~A~%" (abbreviate (second intensions)) (abbreviate (third intensions)) (abbreviate (first intensions))
+                necessary old-prediction (if (equalp necessary old-prediction) "" "Error")))
+    (equalp necessary old-prediction)))
+
+; ---------------------------------------------------------------------------------
+; Section 11.5: Temporal reasoning diagnostics
+; ---------------------------------------------------------------------------------
+
+; (defparameter *temporal-inference-exp1&2-khemlani-et-al-in-prep*
+;   `(((,wBx ,xBy ,zWw) "Is it necessary that..." (,zBx) T 5.5 0.5 0.0 1.0 "1 - One model"      75  NIL T)
+;     ((,wBx ,yAx ,zWw) "Is it necessary that..." (,zBy) T 5.5 0.5 0.0 1.0 "2 - One model"      79  NIL T)
+;     ((,wAx ,xAy ,zWx) "Is it necessary that..." (,zAy) T 5.5 0.5 0.0 1.0 "3 - One model"      61  NIL T)
+;     ((,wAx ,xAy ,zWx) "Is it necessary that..." (,wAz) T 5.5 0.5 0.0 1.0 "4 - One model"      64  NIL T)
+;     ((,wBx ,yBx ,zWw) "Is it necessary that..." (,yBz) T 5.5 0.5 0.0 1.0 "5 - Multiple model" 39  NIL T)
+;     ((,wBx ,xAy ,zWw) "Is it necessary that..." (,yAz) T 5.5 0.5 0.0 1.0 "6 - Multiple model" 39  NIL T)
+;     ((,xAw ,yBx ,wWz) "Is it necessary that..." (,zAy) T 5.5 0.5 0.0 1.0 "7 - Multiple model" 36  NIL T)
+;     ((,xAw ,xAy ,wWz) "Is it necessary that..." (,zBy) T 5.5 0.5 0.0 1.0 "8 - Multiple model" 32  NIL T)))
+
+(defvar *temporal-imm-inf-v1.0*
+  '("Y" "N" "N" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "Y" "Y" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "Y" "Y"))
+
+(defun run-temporal-imm-inf-diagnostics (&key (v nil))
+  "Compares current model's performance on a battery of temporal immediate inference problems. 
+   The fn checks to make sure performance is accurate."
+  (let ((i 0))
+    (when v
+      (format t "~%----------------------------------------------------~%")
+      (format t "                            Necessary?~%")
+      (format t "                         ----------------~%")
+      (format t "Premise       Conclusion Current  Correct Diagnostic~%~
+                 ------------- ---------- ---------------- ----------~%"))
+    (dolist (p1 (list xBy xAy xWy xDy yBx yAx yWx yDx))
+      (dolist (p2 (list xBy xAy xWy xDy yBx yAx yWx yDx))
+        (when (not (diagnose-temporal-imm-inf (list p1 p2) (nth i *temporal-imm-inf-v1.0*) :v v))
+          (return-from run-temporal-imm-inf-diagnostics "[FAILED]"))
+        (incf i)))
+    (when (not v) "[OK]")))
+
+(defun diagnose-temporal-imm-inf (intensions old-prediction &key (v nil))
+  "fn for drawing necessary conclusions"
+  (let* (model necessary)
+    (handler-case
+        (setf model (first (necessary? (list (second intensions)) :given (list (first intensions)) :system2 t))))
+    (setf necessary (if model "Y" "N"))
+    (if v
+        (format t "~14,A~14,A~8,A~8,A~A~%" (abbreviate (first intensions)) (abbreviate (second intensions))
+                necessary old-prediction (if (equalp necessary old-prediction) "" "Error")))
+    (equalp necessary old-prediction)))
+
+(defvar *temporal-deductions-v1.0*
+  '("Y" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "N" "N" "N" "N" "N" "N" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "Y" "Y" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "N" "Y" "Y" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "N" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "Y" "N" "N" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "Y" "N" "N" "N"
+    "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "N"
+    "N" "Y" "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "Y" "N" "N"
+    "N" "N" "Y" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "N" "Y" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N" "N"
+    "N" "N" "N" "N" "N" "N" "Y" "Y" "N" "N" "N" "N" "N" "N" "Y" "Y"))
+
+(defun run-temporal-deductions-diagnostics (&key (v nil))
+  "Compares current model's performance on a battery of temporal immediate inference problems. 
+   The fn checks to make sure performance is accurate."
+  (let ((i 0))
+    (when v
+      (format t "~%----------------------------------------------------~%")
+      (format t "                            Necessary?~%")
+      (format t "                         ----------------~%")
+      (format t "Premises      Conclusion Current  Correct Diagnostic~%~
+                 ------------- ---------- ---------------- ----------~%"))
+    (dolist (p1 (list xBy xAy xWy xDy yBx yAx yWx yDx))
+      (dolist (p2 (list yBz yAz yWz yDz zBy zAy zWy zDy))
+        (dolist (p3 (list xBz xAz xWz xDz zBx zAx zWx zDx))
+          (when (not (or (diagnose-temporal-deductions (list p1 p2 p3) (nth i *temporal-deductions-v1.0*) :v v)
+                         t))
+            (return-from run-temporal-deductions-diagnostics "[FAILED]"))
+          (incf i))))
+      (when (not v) "[OK]")))
+
+(defun diagnose-temporal-deductions (intensions old-prediction &key (v nil))
+  "fn for drawing necessary conclusions"
+  (let* (model necessary)
+    (handler-case
+        (setf model (first (necessary? (list (third intensions)) :given (list (first intensions) (second intensions)) :system2 t))))
+    (setf necessary (if model "Y" "N"))
+    (if v
+        (format t "~3,A,~10,A~14,A~8,A~8,A~A~%" (abbreviate (first intensions)) (abbreviate (second intensions)) (abbreviate (third intensions))
+                necessary old-prediction (if (equalp necessary old-prediction) "" "Error")))
+    (equalp necessary old-prediction)))
+
+(defvar *durations-consistency-v1.0*
+  '("Y" "Y" "Y" "Y" "Y" "Y" "Y" "Y" "N" "N" "N" "N" "N" "N" "N" "N"
+    "Y" "Y" "Y" "Y" "Y" "Y" "Y" "Y" "N" "N" "N" "N" "N" "N" "N" "N"))
+
+(defun run-durations-consistency-diagnostics (&key (v nil))
+  "Compares current model's performance on a battery of temporal immediate inference problems. 
+   The fn checks to make sure performance is accurate."
+  (let ((i 0))
+    (when v
+      (format t "~%---------------------------------------------~%")
+      (format t "                      Consistent?~%")
+      (format t "                   ----------------~%")
+      (format t "Premises           Current  Correct Diagnostic~%~
+                 ------------------ ---------------- ----------~%"))
+    (dolist (p (append *durational-reasoning-exp1-kelly-et-al-2020*
+                       *durational-reasoning-exp2&3-kelly-et-al-2020*))
+      (when (not (diagnose-durations-consistency (first p) (nth i *durations-consistency-v1.0*) :v v))
+        (return-from run-durations-consistency-diagnostics "[FAILED]"))
+      (incf i))
+    (when (not v) "[OK]")))
+
+(defun diagnose-durations-consistency (intensions old-prediction &key (v nil))
+  "fn for drawing necessary conclusions"
+  (let* (model consistent)
+    (handler-case
+        (setf model (first (consistent? intensions :system2 t))))
+    (setf consistent (if model "Y" "N"))
+    (if v
+        (format t "~22,A~8,A~8,A~A~%"
+                (format nil "~{~a~^,~}" (mapcar #'abbreviate intensions))
+                consistent old-prediction (if (equalp consistent old-prediction) "" "Error")))
+    (equalp consistent old-prediction)))
+  
+; ---------------------------------------------------------------------------------
+; Section 11.6: Running experiments and parameter searching
 ; ---------------------------------------------------------------------------------
 
 (defparameter *parameters* (let ((parameters nil))
-                             (dolist (l '(2.0 2.5 3.0 3.5 4.0 4.5 5.0))
-                               (dolist (e '(0.0 0.2 0.4 0.6 0.8 1.0))
-                                 (dolist (s '(0.0 0.2 0.4 0.6 0.8 1.0))
-                                   (dolist (o '(0.0 0.2 0.4 0.6 0.8 1.0))
-                                     (push (list l e s o) parameters)))))
+                             (dolist (s (reverse '(2.0 2.5 3.0 3.5 4.0 4.5 5.0)))
+                               (dolist (a (reverse '(0.0 0.2 0.4 0.6 0.8 1.0)))
+                                 (dolist (s2 (reverse '(0.0 0.2 0.4 0.6 0.8 1.0)))
+                                   (dolist (r (reverse '(0.0 0.2 0.4 0.6 0.8 1.0)))
+                                     (dolist (d '(:infinity))
+                                       (dolist (c '(0.0))
+                                         (push (list s a s2 r d c) parameters)))))))
                              parameters))
 
 (defun export-synthetic-data (data &key (directory nil) (parameter-string nil))
   (multiple-value-bind (second minute hour date month year day-of-week dst-p tz)
       (get-decoded-time)
+    (declare (ignore second minute hour day-of-week dst-p tz))
     
     #+lispworks (when (not directory) (setf directory (capi:prompt-for-directory "Save data file here:")))
   
     (when directory
-      (setf pathname (merge-pathnames directory (if (null parameter-string)
-                                                    (format nil "mReasonerData ~A-~A-~A.csv" year month date)
-                                                  (format nil "mReasonerData ~A-~A-~A ~A.csv" year month date parameter-string))))
-      (with-open-file (output pathname
-                              :direction :output
-                              :if-exists :supersede
-                              :if-does-not-exist :create)
-        (format output "Subject,ProblemNumber,Response,InitialModel,FinalModel,Distance,~
-                        Premises,Task,Conclusions,Stochastic,Lambda,Epsilon,Sigma,Omega,Category,Accuracy,Latency~%")
-        (dolist (datum (reverse data))
-          (format output "~{~a~^,~}~%" datum))))))
+      (let ((pathname (merge-pathnames directory (if (null parameter-string)
+                                                     (format nil "mReasonerData ~A-~A-~A.csv" year month date)
+                                                     (format nil "mReasonerData ~A-~A-~A ~A.csv" year month date parameter-string)))))
+        (with-open-file (output pathname
+                                :direction :output
+                                :if-exists :supersede
+                                :if-does-not-exist :create)
+          (format output "Subject,ProblemNumber,Response,InitialModel,FinalModel,Distance,~
+                        Premises,Task,Conclusions,Stochastic,Size,Atypicality,Search,Revision,Distance,Compression,Category,Accuracy,Latency~%")
+          (dolist (datum (reverse data))
+            (format output "~{~a~^,~}~%" datum)))))))
 
 (defun parameter-search (problems &key (directory nil) (N 100) (parameters *parameters*) (verbose t))
-  (let ((l +lambda+) (e +epsilon+) (s +sigma+) (o +omega+)
+  (let ((s +size+) (a +atypicality+) (s2 +search+) (r +revision+) (d +distance+) (c +compression+)
         experiments)
     (if (listp parameters)
         (setf experiments (length parameters))
@@ -285,9 +479,15 @@ t))
     ;(format t "~%Exporting data to: ~A~%" directory)
     (dotimes (i experiments)
       (run-experiment problems :N N :verbose verbose :parameters (nth i parameters) :status (list (1+ i) experiments))
-      (export-synthetic-data *synthetic-data* :directory directory :parameter-string (format nil "l~A-e~A-s~A-o~A" +lambda+ +epsilon+ +sigma+ +omega+)))
+      (export-synthetic-data *synthetic-data* :directory directory :parameter-string (format nil "s~A-a~A-s2~A-r~A-d~A-c~A"
+                                                                                             +size+
+                                                                                             +atypicality+
+                                                                                             +search+
+                                                                                             +revision+
+                                                                                             +distance+
+                                                                                             +compression+)))
  
-    (setf +lambda+ l +epsilon+ e +sigma+ s +omega+ o)))
+    (setf +size+ s +atypicality+ a +search+ s2 +revision+ r +distance+ d +compression+ c)))
 
 
 ;; process-data creates a thread which watches for data being
@@ -315,25 +515,20 @@ t))
     ;; Return mailbox so that others can share it.
     mailbox))
 
-
 (defun run-experiment (problems &key (N 20) (verbose t) (parameters nil) (status nil))
   (setf *synthetic-data* nil)
-  (when verbose
-    (format t "~%--------------------------~%~
-               Experiment ~A~%~
-               --------------------------~%~
-               Problems:            ~5d~%~
-               Simulated subjects:  ~5d~%~%" (if status (format nil "(~A of ~A)" (first status) (second status)) "") (length problems) N))
 
   (dotimes (subject N)
     (dotimes (problem (length problems))
       ; ---  single-threaded  ---
       (when parameters
         (setf *stochastic* t
-              +lambda+ (first parameters)
-              +epsilon+ (second parameters)
-              +sigma+ (third parameters)
-              +omega+ (fourth parameters)))
+              +size+ (first parameters)
+              +atypicality+ (second parameters)
+              +search+ (third parameters)
+              +revision+ (fourth parameters)
+              +distance+ (fifth parameters)
+              +compression+ (sixth parameters)))
       (run-problem-and-collect-output (nth problem problems) parameters problem subject N)
       ; ---  multi-threaded   ---
       ;(mp:process-run-function (format t "mR launch: S~A-P~A~%" subject problem) `(:mailbox ,*mailbox*) 'run-problem-and-collect-output (nth problem problems) parameters problem subject N)
@@ -348,24 +543,40 @@ t))
                                                    (* (/ subject N) 100)
                                                    (experiment-progress-accessor *mR-interface*))))))
   (when verbose
-    (format t "Parameter settings:~%~
-               ~T           lambda  = ~4d~%~
-               ~T           epsilon = ~4d~%~
-               ~T           sigma   = ~4d~%~
-               ~T           omega   = ~4d~%~
-               --------------------------~%"  +lambda+ +epsilon+ +sigma+ +omega+)))
+    (format t "~%-------------------------------~%~
+               Experiment ~A~%~
+               ----------~%~
+              ~%~
+               Problems:           ~5d~%~
+               Simulated subjects: ~5d~%~
+               ~%~
+               Parameter settings:~%~
+               ~T             size  = ~4d~%~
+               ~T       atypicality = ~4d~%~
+               ~T            search = ~4d~%~
+               ~T          revision = ~4d~%~
+               ~T          distance = ~4d~%~
+               ~T       compression = ~4d~%~
+               -------------------------------~%"
+            (if status (format nil "(~A of ~A)" (first status) (second status)) "")
+            (length problems)
+            N
+            +size+ +atypicality+ +search+ +revision+ +distance+ +compression+)))
 
 (defun run-problem-and-collect-output (problem-list parameters problem subject N)
-  (let ((*tracer*     (copy-class-instance (reset-tracer)))
-        (*stochastic* (if parameters t (nth 3 problem-list)))
-        (+lambda+     (if parameters (nth 0 parameters) (nth 4 problem-list)))
-        (+epsilon+    (if parameters (nth 1 parameters) (nth 5 problem-list)))
-        (+sigma+      (if parameters (nth 2 parameters) (nth 6 problem-list)))
-        (+omega+      (if parameters (nth 3 parameters) (nth 7 problem-list)))
-        (data-point   (make-list 17 :initial-element "NA")))
-
+  (declare (ignore N))
+  (let ((*tracer*      (copy-class-instance (reset-tracer)))
+        (*stochastic*  (if parameters t (nth 3 problem-list)))
+        (+size+        (if parameters (nth 0 parameters) (nth 4 problem-list)))
+        (+atypicality+ (if parameters (nth 1 parameters) (nth 5 problem-list)))
+        (+search+      (if parameters (nth 2 parameters) (nth 6 problem-list)))
+        (+revision+    (if parameters (nth 3 parameters) (nth 7 problem-list)))
+        (+distance+    :infinity)
+        (+compression+ 0)
+        (data-point    (make-list 19 :initial-element "NA")))
+   
     (run-problem problem-list)
-;    (format t "mR collect: S~A-P~A~%" subject problem)
+    ;    (format t "mR collect: S~A-P~A~%" subject problem)
 
     (setf (nth 0  data-point) (format nil "S~A" (1+ subject)))
     (setf (nth 1  data-point) (format nil "P~A" (1+ problem)))
@@ -380,13 +591,15 @@ t))
     (setf (nth 8  data-point) (if (nth 2 problem-list)
                                   (format nil "~{~A~#[~:;  ~]~}" (mapcar #'abbreviate (nth 2 problem-list))) "NA"))
     (setf (nth 9  data-point) (if (nth 3 problem-list) "Yes" "No"))
-    (setf (nth 10 data-point) +lambda+)
-    (setf (nth 11 data-point) +epsilon+)
-    (setf (nth 12 data-point) +sigma+)
-    (setf (nth 13 data-point) +omega+)
-    (setf (nth 14 data-point) (nth 8  problem-list))
-    (setf (nth 15 data-point) (nth 9  problem-list))
-    (setf (nth 16 data-point) (nth 10 problem-list))
+    (setf (nth 10 data-point) +size+)
+    (setf (nth 11 data-point) +atypicality+)
+    (setf (nth 12 data-point) +search+)
+    (setf (nth 13 data-point) +revision+)
+    (setf (nth 14 data-point) +distance+)
+    (setf (nth 15 data-point) +compression+)
+    (setf (nth 16 data-point) (nth 8 problem-list))
+    (setf (nth 17 data-point) (nth 9 problem-list))
+    (setf (nth 18 data-point) (nth 10 problem-list))
     ; ---  single-threaded  ---
     (push data-point *synthetic-data*)
     ; ---  multi--threaded  ---
@@ -396,7 +609,7 @@ t))
 
 (defun run-problem (problem &key (verbose nil))
   (when verbose
-    (format t "lambda = ~A epsilon = ~A sigma = ~A omega = ~A~%" +lambda+ +epsilon+ +sigma+ +omega+))
+    (format t "size = ~A atypicality = ~A search = ~A revision = ~A~%" +size+ +atypicality+ +search+ +revision+))
   
   (let* ((premise-intensions (nth 0 problem))
          (task (nth 1 problem))
@@ -408,7 +621,7 @@ t))
      ((string-equal "Can all of those statements be true at the same time?" task) (consistent? premise-intensions)))))
   
 ; ---------------------------------------------------------------------------------
-; Section 11.6: Pre-defined experiments
+; Section 11.7: Pre-defined experiments
 ; ---------------------------------------------------------------------------------
 
 (defparameter *immediate-inference-exp1-newstead-griggs-1983*

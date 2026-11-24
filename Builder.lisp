@@ -34,11 +34,25 @@
           (models-1st-only (remove-models models-2nd models-1st))
           (models-2nd-only (remove-models models-1st models-2nd)))
      (cond
+      ; when models exist that have both arg1 and arg2, confirm the intension for those models
       (models-both           (confirm intension models-both))
+      ; when arg1 and arg2 both occur in models, combine them
       ((and models-1st-only
-            models-2nd-only) (combine intension models-1st-only models-2nd-only))
+            models-2nd-only) (progn
+                               (when (or (> (length models-1st-only) 1)
+                                       (> (length models-2nd-only) 1))
+                                 (warn "Multiple models match 1st or 2nd arguments; model combination may be inaccurate"))
+                               (combine intension (first models-1st-only) (first models-2nd-only))))
+      ; when arg1 occurs in the models, add arg2
       (models-1st-only       (add-second-argument intension models-1st-only))
+      ; when arg2 occurs in the models, add arg1
       (models-2nd-only       (add-first-argument intension models-2nd-only))
+      ; when a previous model has been build, and args 1&2 don't occur in it, start
+      ; a new model and hold it in memory (to potentially combine it later)
+      ((and models
+            (and (not models-1st)
+                 (not models-2nd))) (append (start-model intension) models))
+      ; when no previous model was built, start a new one 
       ((or (null models)
            (and (not models-1st)
                 (not models-2nd))) (start-model intension :models models)))))
@@ -107,30 +121,51 @@
 ; Section 6.3: Combining models
 ; ---------------------------------------------------------------------------------
 
-#| (defmethod combine ((mod1 q-model) (mod2 q-model))
+(defmethod combine ((int q-intension) (mod1 q-model) (mod2 q-model))
   "Combines two separate q-models by aligning matched properties together"
   (let*
-      ((individuals1      (copy-list (individuals mod1)))
+      ((arg1 (list (first-argument int)))
+       (arg2 (list (second-argument int)))
+       (card1 (get-referent-cardinality arg1 mod1))
+       (card2 (get-referent-cardinality arg2 mod1))
+       (individuals1      (copy-list (individuals mod1)))
        (individuals2      (copy-list (individuals mod2)))
-       (properties1       (recover-each-property (extract-all-individuals individuals1)))
-       (properties2       (recover-each-property (extract-all-individuals individuals2)))
-       (common-properties (intersection properties1 properties2 :test #'equals))
-       matched-properties matched-individual combined-model)
+       combined-model)
+    
+    (if (stochastic-enabled?)
+        (start-model int)
+      (let ((new-individuals1 (add-new-property arg1 arg2 individuals1 (numprop-value int)))
+            (new-individuals2 (add-new-property arg1 arg2 individuals2 (numprop-value int)))
+            (i 0))
+        (dolist (indiv1 new-individuals1)
+          (if (find-referent-in-individual arg2 indiv1)
+              (push (merge-individuals indiv1 (nth i new-individuals2)) combined-model)
+            (progn
+              (push indiv1 combined-model)
+              (push (nth i new-individuals2) combined-model)))
+          (incf i))))
 
-    (dolist (m1-indiv individuals1)
-      (setf matched-properties (intersection m1-indiv common-properties :test #'equals))
-      (setf matched-individual
-            (find-if #'(lambda (x) (has-property (first matched-properties) x))
-                     individuals2))
-      (when matched-individual
-        (setf individuals2 (remove-if #'(lambda (x) (has-property (first matched-properties) x))
-                                      individuals2 :count 1)))
-      (push (merge-individuals m1-indiv matched-individual) combined-model))
+    (setf combined-model (make-instance 'q-model
+                                        :indivs (reverse combined-model)
+                                        :fn (flatten (list int (footnote mod1) (footnote mod2))))) 
+    (list combined-model)))
 
-    (print individuals1)
-    (print individuals2)
-    (setf combined-model (append (reverse combined-model) individuals2))
-    combined-model)) |#
+(defmethod combine ((int t-intension) (mod1 t-model) (mod2 t-model))
+  "Combines two separate t-models by aligning matched properties together"
+  (let*
+      ((arg1     (first-argument int))
+       (arg2     (second-argument int))
+       (moments1 (copy-list (moments mod1)))
+       (moments2 (copy-list (moments mod2)))
+       combined-model)
+
+    (add-object-at-first-free-fit int arg2 mod1 (event-range arg1 moments1))
+    (add-subject-at-first-free-fit int arg1 mod2 (event-range arg2 moments2))
+    
+    (setf combined-model (make-instance 't-model
+                                        :moments (merge-moments (moments mod1) (moments mod2))
+                                        :fn (flatten (list int (footnote mod1) (footnote mod2))))) 
+    (list combined-model)))
 
 ; ---------------------------------------------------------------------------------
 ; Section 6.3: Starting a model, adding an object
@@ -163,21 +198,24 @@
     (if (null model)
         (setf footnote (list intension))
       (progn
-        (setf canon-individuals (remove-duplicates
-                                 (append canon-individuals
-                                         (individuals model)
-                                         (cartesian-product canon-individuals (individuals model)))))
+        (setf canon-individuals (remove-duplicates (append canon-individuals 
+                                                           (individuals model)
+                                                           (cartesian-product canon-individuals (individuals model)))))
+        (setf full-individuals (remove-duplicates (append full-individuals
+                                                          (individuals model)
+                                                          (cartesian-product full-individuals (individuals model)))))
         (setf footnote (append (list intension) (footnote model)))))
 
     (loop repeat capacity do
           (setf sample-individuals (if (build-canonical?) canon-individuals full-individuals))
           (push (nth (random (length sample-individuals)) sample-individuals) individuals))
     (setf new-model (make-instance 'q-model :indivs individuals :fn footnote :capacity capacity))
+
     (cond
      ((and (validate-all-conclusions (footnote new-model) (list new-model))
            (find-referent-in-model (subject intension) new-model)
            (find-referent-in-model (object intension) new-model))  new-model)
-     ((> attempt 0)                                (rebuild-attempt (reverse (footnote new-model)) :attempt (1- attempt)))
+     ((> attempt 0)                                (rebuild-attempt (footnote new-model) :attempt (1- attempt)))
      (t                                            (error "Could not construct model.")))))
 
 (defun rebuild-attempt (intensions &key (attempt *build-attempts*))
@@ -199,76 +237,84 @@
     (when (null model) (setf model (make-individuals card subj))) ; inserts card initial individuals
 
     (cond
-     ; For set-membership assertions
-     ((is-setmem intension :n 1)
-      (cond
-       ((negative-intension intension)
-        (setf (individuals model) (add-new-property subj (negate-property obj) (individuals model) 1))
-        (when (null mod) (setf (individuals model) (append (individuals model) (individuals (make-individuals 3 obj))))))
-       ((affirmative-intension intension)
-        (setf (individuals model) (add-new-property subj obj (individuals model) 1))
-        (when (null mod) (setf (individuals model) (append (individuals model) (individuals (make-individuals 2 obj))))))))
+      ((< (length (entities model)) card)
+       (setf (individuals model)
+             (append (individuals model)
+                     (individuals (make-individuals (- card (length (entities model))) subj))))
+       (start-mod intension :model model))
+      
+      ; For set-membership assertions
+      ((is-setmem intension :n 1)
+       (cond
+         ((negative-intension intension)
+          (setf (individuals model) (add-new-property subj (negate-property obj) (individuals model) 1))
+          (when (null model) (setf (individuals model) (append (individuals model) (individuals (make-individuals 3 obj))))))
+         ((affirmative-intension intension)
+          (setf (individuals model) (add-new-property subj obj (individuals model) 1))
+          (when (null model) (setf (individuals model) (append (individuals model) (individuals (make-individuals 2 obj))))))))
 
-     ; For assertions with determiner: "most"
-     ((or (is-most intension)
-          (is-maj intension))
-      (cond
-       ((negative-intension intension)
-        (setf (individuals model)
-              (add-new-property subj (negate-property obj) (individuals model) (- (get-referent-cardinality subj model) 1)))
-        (setf (individuals model)
-              (add-new-property subj obj (individuals model) (- card numprop))))
-       ((affirmative-intension intension)
-        (setf (individuals model)
-              (add-new-property subj obj (individuals model) (- (get-referent-cardinality subj model) 1))))))
+      ; For assertions with determiner: "most"
+      ((or (is-most intension)
+           (is-most-not intension)
+           (is-maj intension)
+           (is-min intension))
+       (cond
+         ((negative-intension intension)
+          (setf (individuals model)
+                (add-new-property subj (negate-property obj) (individuals model) (- (get-referent-cardinality subj model) 1)))
+          (setf (individuals model)
+                (add-new-property subj obj (individuals model) (- card numprop))))
+         ((affirmative-intension intension)
+          (setf (individuals model)
+                (add-new-property subj obj (individuals model) (- (get-referent-cardinality subj model) 1))))))
 
-     ((is-min intension)
-      (cond
-       ((affirmative-intension intension)
-        (setf (individuals model)
-              (add-new-property subj (negate-property obj) (individuals model) (- (get-referent-cardinality subj model) 1)))
-        (setf (individuals model)
-              (add-new-property subj obj (individuals model) (- card numprop))))
-       ((negative-intension intension)
-        (setf (individuals model)
-              (add-new-property subj obj (individuals model) (- (get-referent-cardinality subj model) 1))))))
+      ((is-min intension)
+       (cond
+         ((affirmative-intension intension)
+          (setf (individuals model)
+                (add-new-property subj (negate-property obj) (individuals model) (- (get-referent-cardinality subj model) 1)))
+          (setf (individuals model)
+                (add-new-property subj obj (individuals model) (- card numprop))))
+         ((negative-intension intension)
+          (setf (individuals model)
+                (add-new-property subj obj (individuals model) (- (get-referent-cardinality subj model) 1))))))
 
-     ; For assertions with determiner: "none"
-     ((is-none intension)
-      (setf (individuals model)
-            (append (individuals model) (individuals (make-individuals 1 obj))))
-      (setf (individuals model)
-            (add-new-property subj (negate-property obj) (individuals model) (get-referent-cardinality subj model))))
+      ; For assertions with determiner: "none"
+      ((is-none intension)
+       (setf (individuals model)
+             (append (individuals model) (individuals (make-individuals 1 obj))))
+       (setf (individuals model)
+             (add-new-property subj (negate-property obj) (individuals model) (get-referent-cardinality subj model))))
 
-     ; For assertions with quantifier: "some_not"
-     ((is-some-not intension)
-      (setf (individuals model)
-            (append (individuals model) (individuals (make-individuals 1 obj))))
-      (setf (individuals model)
-            (add-new-property subj (negate-property obj) (individuals model) numprop)))
+      ; For assertions with quantifier: "some_not"
+      ((is-some-not intension)
+       (setf (individuals model)
+             (append (individuals model) (individuals (make-individuals 1 obj))))
+       (setf (individuals model)
+             (add-new-property subj (negate-property obj) (individuals model) numprop)))
 
-     ; For assertions with determiner: "some"
-     ((is-some intension)
-      (setf (individuals model)
-            (add-new-property subj obj (individuals model) numprop)))
+      ; For assertions with determiner: "some"
+      ((is-some intension)
+       (setf (individuals model)
+             (add-new-property subj obj (individuals model) numprop)))
 
-     ; For assertions with determiner: "all"
-     ((is-all intension)
-      (cond
-       ((affirmative-intension intension)
-        (setf (individuals model)
-              (add-new-property subj obj (individuals model) (get-referent-cardinality subj model))))
-       ((negative-intension intension)
-        (setf (individuals model)
-              (add-new-property subj (negate-property obj) (individuals model) (get-referent-cardinality subj model)))))))
+      ; For assertions with determiner: "all"
+      ((is-all intension)
+       (cond
+         ((affirmative-intension intension)
+          (setf (individuals model)
+                (add-new-property subj obj (individuals model) (get-referent-cardinality subj model))))
+         ((negative-intension intension)
+          (setf (individuals model)
+                (add-new-property subj (negate-property obj) (individuals model) (get-referent-cardinality subj model)))))))
 
     (add-footnote model intension)
 
     (if (stochastic-enabled?)
         (if (validate-all-conclusions (footnote model) (list model))
             model
-          (first (interpret (footnote model))))
-      model)))
+            (first (interpret (footnote model))))
+        model)))
 
 (defun add-new-property (old-property new-property indivs numprop)
   " ok adds a new-property to n individuals in model that contain old-property
@@ -278,15 +324,21 @@
      (((A) (B)) ((A) (B)) ((A) (B)))
    But drops footnote, because start-mod updates it"
   (cond
-   ((null indivs) nil)
-   ((and (not (member-property new-property (first indivs)))
-         (member-property old-property (first indivs))
-         (not (member-property (negate-property new-property) (first indivs)))
-         (> numprop 0))
-    (cons (add-property new-property (first indivs) old-property)
-          (add-new-property old-property new-property (rest indivs) (decf numprop))))
-   (t
-    (cons (first indivs) (add-new-property old-property new-property (rest indivs) numprop)))))
+    ((null indivs) nil)
+    ((= numprop 0) indivs)
+    ((and (not (member-property new-property (first indivs)))
+          (member-property old-property (first indivs))
+          (not (member-property (negate-property new-property) (first indivs)))
+          (> numprop 0))
+     (cons (add-property new-property (first indivs) old-property)
+           (add-new-property old-property new-property (rest indivs) (decf numprop))))
+    ((and (equals (length indivs) 1)
+          (negative-property old-property)
+          (not (member-property new-property (first indivs)))
+          (> numprop 0))
+     (append indivs (list (list old-property new-property))))
+    (t
+     (cons (first indivs) (add-new-property old-property new-property (rest indivs) numprop)))))
 
 (defun add-property (property indiv &optional old-property)
   "ok adds property, which is a list to allow for negatives, to an individual, e.g. 
@@ -822,21 +874,25 @@
          (object (list (object intension)))
          (cardinality (cardinality-value intension))
          (numprop   (numprop-value intension))
-         (relation (relation intension))
-         (n-objects (find-referent-individuals-in-model object model))
-         (individuals (individuals model)))
+         (relation (relation intension)))
+    
+    (when (< (length (individuals model)) cardinality)
+      (setf (individuals model)
+            (append (individuals model)
+                    (individuals (make-individuals (- cardinality (length (entities model))) object)))))
+    
     (setf (individuals model)
           (cond
            ((is-setmem intension :n 1)
             (if (negative-relation relation)
-                (add-new-property (negate object) subject individuals 1)
-              (add-new-property object subject individuals 1)))
+                (add-new-property (negate object) subject (individuals model) 1)
+              (add-new-property object subject (individuals model) 1)))
            ((is-all intension)
-            (add-new-property object subject individuals (length n-objects)))
+            (add-new-property object subject (individuals model) (length (find-referent-individuals-in-model object model))))
            ((is-some intension)
-            (append (add-new-property object subject individuals 1)(list (list subject))))
+            (append (add-new-property object subject (individuals model) 1) (list (list subject))))
            ((is-none intension)
-            (append (individuals model) 
+            (append (individuals model)
                     (make-complex-individuals cardinality (list subject (negate object)))))
            ((is-some-not intension)
             (append (individuals model)
@@ -899,7 +955,7 @@
    ((is-before intension)
     (setf (moments model) (insert-at `((,subj)) (moments model) (first range))))
    ((is-after intension)
-    (setf (moments model) (insert-at `((,subj)) (moments model) (1+ (first range)))))
+    (setf (moments model) (insert-at `((,subj)) (moments model) (1+ (second range)))))
    ((is-while intension)
     (setf (moments model) (insert-at `((,subj)) (moments model) (first range) :append t)))
    ((is-during intension)
